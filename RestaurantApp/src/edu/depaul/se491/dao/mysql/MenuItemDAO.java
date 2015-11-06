@@ -48,6 +48,8 @@ public class MenuItemDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return menu;
 	}
@@ -78,6 +80,8 @@ public class MenuItemDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return menuItem;
 	}
@@ -106,6 +110,8 @@ public class MenuItemDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return true;
 	}
@@ -135,6 +141,8 @@ public class MenuItemDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return true;
 	}

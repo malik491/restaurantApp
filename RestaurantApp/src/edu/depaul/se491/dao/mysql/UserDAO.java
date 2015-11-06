@@ -54,6 +54,8 @@ public class UserDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return users;
 	}
@@ -84,6 +86,8 @@ public class UserDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return user;
 	}
@@ -123,8 +127,10 @@ public class UserDAO {
 			}
 			throw excp;
 		} finally {
-			if (conn != null)
+			if (conn != null) {
 				conn.setAutoCommit(true);
+				conn.close();
+			}
 		}
 		return true;
 	}
@@ -153,6 +159,8 @@ public class UserDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return true;
 	}

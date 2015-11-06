@@ -32,5 +32,5 @@ public abstract class DAOUtil {
 		System.err.println(e.getErrorCode());
 		System.err.flush();
 		e.printStackTrace();
-	}
+	}	
 }

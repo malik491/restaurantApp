@@ -3,12 +3,12 @@
  */
 package edu.depaul.se491.action.menu;
 
-import javax.servlet.http.HttpServlet;
+import edu.depaul.se491.action.BaseAction;
 
 /**
- * update an existing menu item
+ * update a menu item
  * @author Malik
  */
-public class UpdateMenuItem extends HttpServlet {
+public class UpdateMenuItem extends BaseAction {
 
 }

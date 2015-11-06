@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /**
  * list of all states
- * @author usrm
+ * @author Malik
  *
  */
 public enum State implements Serializable {

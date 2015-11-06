@@ -13,33 +13,27 @@
 
 <body>
 	<br>
-	
-	<%
+<%
 	List<OrderBean> orders = (List<OrderBean>) request.getAttribute("orders");
 	if (orders == null) {
-		// send to the home page servlet
-		getServletContext().getRequestDispatcher("/index.html").forward(request, response);
+		String msg = (String) request.getAttribute("msg");
+		if (msg != null) {
+			%> <h3><%=msg%></h3> <%
+		} else {
+			// send to the home page servlet
+			getServletContext().getRequestDispatcher("/index.html").forward(request, response);			
+		}
 	} else {
-		//
-	%>
-	<div class="component">
+%>
+	  <div class="component">
+		
 		<div class="component">
-			<h1>Orders</h1>
-			<p>list all orders in the database</p>
-			<table>
-				<thead>
-					<tr>
-						<th> ID </th>
-						<th> Date </th>
-						<th> Status </th>
-						<th> Type </th>
-						<th> Total </th>
-						<th> Delivery Address </th>
-					</tr>
-				</thead>
-				<tbody>
-
-		<%	
+		<h1>Orders</h1>
+		<p>list all orders in the database</p>
+		<table>
+			<thead><tr><th> ID </th><th> Date </th><th> Status </th><th> Type </th><th> Total </th><th> Delivery Address </th></tr></thead>
+			<tbody>	
+<%	
 		for (OrderBean order: orders) {
 			String id = Long.toString(order.getId());
 			String status = order.getStatus().toString();
@@ -50,66 +44,43 @@
 			String address = addr == null? "" : 
 				String.format("%s,<br> %s.<br> %s, %s %s", addr.getLine1(), addr.getLine2(), addr.getCity(), 
 						addr.getState().toString().toLowerCase(), addr.getZipcode());
-			%>
+%>
 			<!--  print row for this order -->
 			<tr>
-				<td><%=id%></td> 
-				<td><%=data%></td>
-				<td><%=status%></td>
-				<td><%=type%></td>
-				<td>&#36;<%=total%></td>
-				<td><%=address%></td>
+				<td><%=id%></td> <td><%=data%></td>	<td><%=status%></td><td><%=type%></td><td>&#36;<%=total%></td><td><%=address%></td>
 			</tr>
-			<% 
-		}
-		%>
-		</tbody>
-		</table>
-		</div>
-		
-		<%
-		for (OrderBean order: orders) 
-		{
-		%>	
+<% 		}
+%>
+			</tbody>
+		</table></div>
+
+<%		for (OrderBean order: orders) {
+%>	
 			<div class="component">
-				<h2>Order Detail <%=String.format("(ID:%d)", order.getId())%></h2>
-				<table>
-					<thead>
-						<tr>
-							<th> Menu Item Id </th>
-							<th> Menu Item Name </th>
-							<th> Quantity </th>
-							<th> Unit Price </th>
-						</tr>
-					</thead>
+			<h3> Order (<%=Long.toString(order.getId())%>) Details </h3>
+			<table>
+				<thead><tr><th> Menu Item Id </th>	<th> Menu Item Name </th><th> Quantity </th><th> Unit Price </th></tr></thead>
 				<tbody>
-		<%	
+<%
 			for (OrderItemBean oItem: order.getItems()) {
 				MenuItemBean mItem = oItem.getMenuItem();
 				String mItemId = Long.toString(mItem.getId());
 				String mItemName = mItem.getName();
 				String unitPrice = String.format("%.2f", mItem.getPrice());
 				int qunatity = oItem.getQuantity();
-		%>
-				
+%>
+				<!--  print MENU ITEMS for this order -->
 				<tr>
-					<td><%=mItemId%></td> 
-					<td><%=mItemName%></td>
-					<td><%=qunatity%></td>
-					<td>&#36;<%=unitPrice%></td>
+					<td><%=mItemId%></td><td><%=mItemName%></td><td><%=qunatity%></td><td>&#36;<%=unitPrice%></td>
 				</tr>
-		<% 
-			}
-		%>
+<%	 		}	
+%>
 				</tbody>
-				</table>
-			</div>
-		<%
-		}
-		%>
-	<%
-	}
-	%>
-	</div>
+			</table></div>
+<%		} 
+%>
+	  </div>
+<%	}
+%>
 </body>
 </html>

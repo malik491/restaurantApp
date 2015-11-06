@@ -51,6 +51,8 @@ public class AddressDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return addresses;
 	}
@@ -81,6 +83,8 @@ public class AddressDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return address;
 	}
@@ -109,6 +113,8 @@ public class AddressDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return true;
 	}
@@ -138,6 +144,8 @@ public class AddressDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return true;
 	}

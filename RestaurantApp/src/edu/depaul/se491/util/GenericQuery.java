@@ -6,7 +6,6 @@ package edu.depaul.se491.util;
 /**
  * a class for generic query generating methods
  * @author Malik
- *
  */
 public abstract class GenericQuery {
 

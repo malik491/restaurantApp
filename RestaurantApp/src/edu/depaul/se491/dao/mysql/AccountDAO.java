@@ -49,6 +49,8 @@ public class AccountDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return accounts;
 	}
@@ -80,6 +82,8 @@ public class AccountDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return account;
 	}
@@ -110,6 +114,8 @@ public class AccountDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return account;
 	}
@@ -137,6 +143,8 @@ public class AccountDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return true;
 	}
@@ -166,6 +174,8 @@ public class AccountDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return true;
 	}

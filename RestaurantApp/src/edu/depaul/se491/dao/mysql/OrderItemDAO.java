@@ -54,6 +54,8 @@ public class OrderItemDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return orderItems;
 	}
@@ -79,7 +81,8 @@ public class OrderItemDAO {
 		} catch (SQLException e) {
 			throw e;
 		} finally {
-			ps.close();
+			if (ps != null)
+				ps.close();
 		}
 		return true;
 	}

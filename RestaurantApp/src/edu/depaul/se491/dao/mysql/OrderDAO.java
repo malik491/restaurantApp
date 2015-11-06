@@ -90,6 +90,8 @@ public class OrderDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return order;		
 	}
@@ -123,6 +125,8 @@ public class OrderDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return order;		
 	}
@@ -173,8 +177,10 @@ public class OrderDAO {
 			}
 			throw excp;
 		} finally {
-			if (conn != null)
+			if (conn != null) {
 				conn.setAutoCommit(true);
+				conn.close();
+			}
 		}
 		
 		return true;
@@ -207,6 +213,8 @@ public class OrderDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return true;
 	}
@@ -259,18 +267,19 @@ public class OrderDAO {
 			
 			if (paramValue != null)
 				ps.setString(1, paramValue);
-			
+
 			ResultSet rs = ps.executeQuery();
-			
 			orders = loader.loadList(rs);
+			
 			for (OrderBean order: orders)
 				order.setItems(orderItemDAO.getItemsForOrder(order.getId()));
-			
 		} catch (SQLException e) {
 			throw e;
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return orders;
 	}
