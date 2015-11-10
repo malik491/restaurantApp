@@ -7,8 +7,8 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 	<title>Orders</title>
-	<link rel="stylesheet" type="text/css" href="css/component.css"/>
-	<link rel="stylesheet" type="text/css" href="css/demo.css"/>
+	<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/component.css"/>
+	<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/demo.css"/>
 </head>
 
 <body>
@@ -21,7 +21,8 @@
 			%> <h3><%=msg%></h3> <%
 		} else {
 			// send to the home page servlet
-			//getServletContext().getRequestDispatcher("/index.html").forward(request, response);			
+			getServletContext().getRequestDispatcher("/index.html").forward(request, response);
+			return;
 		}
 	} else {
 %>
@@ -30,6 +31,33 @@
 		<div class="component">
 		<h1>Orders</h1>
 		<p>list all orders in the database</p>
+<%
+		OrderBean topOrder = orders.get(0);
+		if (topOrder != null) {
+%>			
+		<div class="component" id="topOrder"> 
+			<table>
+				<thead> <th> Top Order </th> <th> </th> </thead>
+				<tbody>
+					<tr> <td> Order ID </td> <td id="topOrderId"><%=topOrder.getId()%></td></tr>
+<%					for (OrderItemBean oItem: topOrder.getItems()) {
+						MenuItemBean mItem = oItem.getMenuItem();
+%>						<tr> <td><%=mItem.getName() %></td> <td>x<%=oItem.getQuantity() %> </td></tr>
+<%					}
+%>				</tbody>
+			</table>
+		</div>
+		<div class="component" id="topOrder"> 
+		
+		</div>
+<%		
+}
+		
+		for (int i=1; i < orders.size(); i++) {
+			OrderBean order = orders.get(i);
+		}
+%>
+		
 		<table>
 			<thead><tr><th> ID </th><th> Date </th><th> Status </th><th> Type </th><th> Total </th><th> Delivery Address </th></tr></thead>
 			<tbody>	

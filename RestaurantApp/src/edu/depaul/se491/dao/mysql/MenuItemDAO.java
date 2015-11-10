@@ -147,10 +147,48 @@ public class MenuItemDAO {
 		return true;
 	}
 	
+	
+	
+	/**
+	 * delete an existing menuItem from database
+	 * @param menuItem updated menuItem data
+	 * @return
+	 * @throws SQLException
+	 */
+	public boolean delete(long menuItemId) throws SQLException {
+		// must handle foreign key issue first
+		/**
+		Connection conn = null;
+		PreparedStatement ps = null;
+		
+		try {
+			conn = factory.getConnection();
+			ps = conn.prepareStatement(DELETE_ITEM_SQL);
+
+			ps.setLong(1, menuItemId);
+			
+			if (ps.executeUpdate() != Values.ONE_ROW_AFFECTED) 
+				throw new SQLException("MenuItemDAO.delete(): multiple (or 0) rows affected by delete(menuItemId)");
+			
+		} catch (SQLException e) {
+			throw e;
+		} finally {
+			if (ps != null)
+				ps.close();
+			if (conn != null)
+				conn.close();
+		}
+		*/
+		throw new SQLException("MenuItemDAO.delete() operation NOT IMPLEMENTED YET");
+		
+	}
+	
 	private static final String SELECT_ALL_SQL = "SELECT * FROM menu_items ORDER BY menu_item_id";
 	private static final String SELECT_BY_ID_SQL = "SELECT * FROM menu_items WHERE (menu_item_id = ?)";
 	
 	private static final String INSERT_ITEM_SQL = "INSERT INTO menu_items (item_name, item_description, item_price) VALUES (?,?,?)";
 	private static final String UPADTE_ITEM_SQL = "UPDATE menu_items SET item_name=?, item_description=?, item_price=? WHERE (menu_item_id=?)";
+
+	private static final String DELETE_ITEM_SQL = "DELETE FROM menu_items WHERE (menu_item_id=?)";
 
 }

@@ -1,56 +1,50 @@
 /**
  * 
  */
-package edu.depaul.se491.action.order;
+package edu.depaul.se491.action.menu;
 
 import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.gson.Gson;
-
 import edu.depaul.se491.action.BaseAction;
-import edu.depaul.se491.bean.MenuItemBean;
 import edu.depaul.se491.util.ExceptionUtil;
 
-
 /**
- * Add order Servlet
+ * Delete an existing menu item
  * @author Malik
  */
-
-@WebServlet("/addOrder")
-public class AddOrder extends BaseAction {
+@WebServlet("/menu/deleteItem")
+public class DeleteItem extends BaseAction {
 	private static final long serialVersionUID = 1L;
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		List<MenuItemBean> menuItems = null;
-		String jsonMenuItems = null;
+		String menuItemId = request.getParameter("menuItemId");
 		String jspMsg = null;
 		
 		try {
-			menuItems = menuItemDAO.getAll();
-			jsonMenuItems = new Gson().toJson(menuItems);
+			if (menuItemId == null) {
+				jspMsg = "Cannot delete a menu item. Unknown menu item ID.";
+			} else {
+				boolean deleted = menuItemDAO.delete(Long.valueOf(menuItemId));
+				if (deleted)
+					jspMsg = "Successfully deleted a menu item";
+				else
+					jspMsg = "Failed to delete a menu item. See console for details";				
+			}
 			
 		} catch (Exception e) {
-			ExceptionUtil.printException(e, "AddOrder");
+			ExceptionUtil.printException(e, "menu/Delete");
 			jspMsg = "Exception Occured. See Console for Details.";
 		}
+
+		request.setAttribute("msg", jspMsg);
 		
-		if (menuItems != null) {
-			request.setAttribute("menuItems", menuItems);
-			request.setAttribute("jsonMenuItems", jsonMenuItems);
-		} else {
-			request.setAttribute("msg", jspMsg);
-		}
-		
-		String jspURL = "/addOrder.jsp";
+		String jspURL = "/menu/deleteItem.jsp";
 		getServletContext().getRequestDispatcher(jspURL).forward(request, response);
 	}
 
@@ -58,5 +52,4 @@ public class AddOrder extends BaseAction {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doGet(request, response);
 	}
-	
 }

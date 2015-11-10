@@ -24,13 +24,5 @@ public abstract class DAOUtil {
 			throw new SQLException("DAOUtil.getAutGeneratedKey(): can't get generated key for newly inserted item.");
 		return newId;
 	}
-	
-	public static synchronized void printException(SQLException e, String servletName) {
-		System.err.println("SQLException Occured (servlet: " + servletName + ")");
-		System.err.println(e.getMessage());
-		System.err.println(e.getSQLState());
-		System.err.println(e.getErrorCode());
-		System.err.flush();
-		e.printStackTrace();
-	}	
+
 }

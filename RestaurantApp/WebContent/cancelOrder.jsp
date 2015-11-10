@@ -1,18 +1,16 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
 <%@ page import="java.util.List"%>
 <%@ page import="edu.depaul.se491.bean.*"%>
-
 <!DOCTYPE html>
 <html>
-<head>
+	<head>
 	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-	<title>Orders</title>
+	<title>Cancel Order</title>
 	<link rel="stylesheet" type="text/css" href="css/component.css"/>
 	<link rel="stylesheet" type="text/css" href="css/demo.css"/>
+	<style type="text/css"></style>
 </head>
-
 <body>
-	<br>
 <%
 	List<OrderBean> orders = (List<OrderBean>) request.getAttribute("orders");
 	if (orders == null) {
@@ -20,44 +18,29 @@
 		if (msg != null) {
 			%> <h3><%=msg%></h3> <%
 		} else {
-			// send to the home page servlet
-			//getServletContext().getRequestDispatcher("/index.html").forward(request, response);			
+			// send to the home page
+			getServletContext().getRequestDispatcher("/index.html").forward(request, response);			
 		}
 	} else {
 %>
-	  <div class="component">
-		
 		<div class="component">
-		<h1>Orders</h1>
-		<p>list all orders in the database</p>
-		<table>
-			<thead><tr><th> ID </th><th> Date </th><th> Status </th><th> Type </th><th> Total </th><th> Delivery Address </th></tr></thead>
-			<tbody>	
-<%	
+		<h1> Cancel Orders </h1>
+<%
+		
 		for (OrderBean order: orders) {
-			String id = Long.toString(order.getId());
-			String status = order.getStatus().toString();
-			String type = order.getType().toString();
-			String data = order.getTimestamp().toString();
-			String total = String.format("%.2f", order.getTotal());
-			AddressBean addr = order.getDeliveryAddress();
-			String address = addr == null? "" : 
-				String.format("%s,<br> %s.<br> %s, %s %s", addr.getLine1(), addr.getLine2(), addr.getCity(), 
-						addr.getState().toString().toLowerCase(), addr.getZipcode());
-%>
-			<!--  print row for this order -->
-			<tr>
-				<td><%=id%></td> <td><%=data%></td>	<td><%=status%></td><td><%=type%></td><td>&#36;<%=total%></td><td><%=address%></td>
-			</tr>
-<% 		}
-%>
-			</tbody>
-		</table></div>
-
-<%		for (OrderBean order: orders) {
+			String orderId = Long.toString(order.getId()); 
+			String confirmation = order.getConfirmation();
 %>	
 			<div class="component">
-			<h3> Order (<%=Long.toString(order.getId())%>) Details </h3>
+			<h3> Order (ID: <%=orderId%> Confirmation: <%=confirmation%>)</h3>
+			
+			<!--  cancel form (cancelOrder servlet is called (passing it orderId) when the button is clicked -->
+			<form action="order/update">
+				<input type="hidden" name="orderId" value="<%=orderId%>">
+				<input type="submit" value="update Order">
+			</form>
+			
+			<!-- print order details -->
 			<table>
 				<thead><tr><th> Menu Item Id </th>	<th> Menu Item Name </th><th> Quantity </th><th> Unit Price </th></tr></thead>
 				<tbody>
@@ -79,7 +62,7 @@
 			</table></div>
 <%		} 
 %>
-	  </div>
+	  	</div>
 <%	}
 %>
 </body>

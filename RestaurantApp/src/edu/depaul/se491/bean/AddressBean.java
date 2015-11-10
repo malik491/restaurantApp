@@ -126,6 +126,22 @@ public class AddressBean implements Serializable {
 	public void setZipcode(String zipcode) {
 		this.zipcode = zipcode;
 	}
+	
+	
+	@Override
+	public boolean equals(Object o) {
+		if (o == null)
+			return false;
+		if (!(o instanceof AddressBean))
+			return false;
+		AddressBean that = (AddressBean) o;
+
+		return this.line1.equals(that.line1) && 
+			   this.line2.equals(that.line2) && 
+			   this.city.equals(that.city) && 
+			   this.zipcode.equals(that.zipcode) &&
+			   this.state == that.state;
+	}
 
 
 	

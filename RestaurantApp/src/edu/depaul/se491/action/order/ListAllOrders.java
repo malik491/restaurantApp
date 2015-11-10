@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import edu.depaul.se491.action.BaseAction;
 import edu.depaul.se491.bean.OrderBean;
-import edu.depaul.se491.util.DAOUtil;
+import edu.depaul.se491.util.ExceptionUtil;
 
 /**
  * List ALL orders in the database
@@ -25,7 +25,7 @@ public class ListAllOrders extends BaseAction {
 	private static final long serialVersionUID = 1L;
 	
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) 
 			throws ServletException, IOException 
 	{
 		List<OrderBean> orders = null;
@@ -34,20 +34,20 @@ public class ListAllOrders extends BaseAction {
 		try {
 			orders = orderDAO.getAll();
 		} catch (SQLException e) {
-			DAOUtil.printException(e, "ListAllOrder");
+			ExceptionUtil.printException(e, "ListAllOrder");
 			jspMsg = "DB Exception Occured. See Console for Details.";
 		}
 		
 		if (orders != null) {
 			// set orders for the jsp
-			request.setAttribute("orders", orders);
+			req.setAttribute("orders", orders);
 		} else {
 			// set message for the jsp
-			request.setAttribute("msg", jspMsg);
+			req.setAttribute("msg", jspMsg);
 		}
 		
 		String jspURL = "/listOrders.jsp";
-		getServletContext().getRequestDispatcher(jspURL).forward(request, response);
+		getServletContext().getRequestDispatcher(jspURL).forward(req, resp);
 	}
 
 	@Override

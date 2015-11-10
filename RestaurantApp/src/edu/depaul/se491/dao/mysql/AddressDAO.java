@@ -41,7 +41,7 @@ public class AddressDAO {
 		
 		try {
 			conn = factory.getConnection();
-			ps = conn.prepareStatement(SELECT_ALL_SQL);
+			ps = conn.prepareStatement(SELECT_ALL_QUERY);
 			
 			ResultSet rs = ps.executeQuery();
 			addresses = loader.loadList(rs);
@@ -70,7 +70,7 @@ public class AddressDAO {
 		AddressBean address = null;
 		try {
 			conn = factory.getConnection();
-			ps = conn.prepareStatement(SELECT_BY_ID_SQL);
+			ps = conn.prepareStatement(SELECT_BY_ID_QUERY);
 			
 			ps.setLong(1, addressId);
 			ResultSet rs = ps.executeQuery();
@@ -92,22 +92,23 @@ public class AddressDAO {
 	/**
 	 * add address to the database using the data in the addressBean
 	 * @param address address data (excluding the id)
-	 * @return
+	 * @return the id of the newly inserted address or Values.UNKNOWN (if no address is inserted)
 	 * @throws SQLException
 	 */
-	public boolean add(AddressBean address) throws SQLException {
+	public long add(AddressBean address) throws SQLException {
 		Connection conn = null;
 		PreparedStatement ps = null;
+		long newAddrId = Values.UNKNOWN; 
 		
 		try {
 			conn = factory.getConnection();
-			ps = conn.prepareStatement(INSERT_ADDR_SQL);
+			ps = conn.prepareStatement(INSERT_ADDR_QUERY, Statement.RETURN_GENERATED_KEYS);
 			
 			loader.loadParameters(ps, address);
 			
 			if (ps.executeUpdate() != Values.ONE_ROW_AFFECTED)
 				throw new SQLException("AddressDAO.add(): multiple (or 0) rows affected by add(address)");
-			
+			newAddrId = DAOUtil.getAutGeneratedKey(ps);
 		} catch (SQLException e) {
 			throw e;
 		} finally {
@@ -116,7 +117,7 @@ public class AddressDAO {
 			if (conn != null)
 				conn.close();
 		}
-		return true;
+		return newAddrId;
 	}
 	
 	/**
@@ -131,7 +132,7 @@ public class AddressDAO {
 		
 		try {
 			conn = factory.getConnection();
-			ps = conn.prepareStatement(UPADTE_ADDR_SQL);
+			ps = conn.prepareStatement(UPADTE_ADDR_QUERY);
 			
 			loader.loadParameters(ps, address);
 			ps.setLong(6, address.getId());
@@ -152,8 +153,58 @@ public class AddressDAO {
 	
 	
 	/**
+	 * search for a matching address in the database based on the data in the addressBean
+	 * @param address address
+	 * @return
+	 * @throws SQLException
+	 */
+	public AddressBean search(AddressBean address) throws SQLException {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		AddressBean existingAddr = null;
+		try {
+			conn = factory.getConnection();
+			ps = conn.prepareStatement(SEARCH_ADDR_QUERY);
+			
+			// translate to: '%%%s%%' (the first and last %% are literal % for the SQL query (.. LIKE '%abd%' ..).
+			// The %s in the middle is for string.format(..) )
+			String regExp = "%%%s%%";
+			
+			String line1 = String.format(regExp, address.getLine1());
+			String line2 = String.format(regExp, address.getLine2());
+			String city = String.format(regExp, address.getCity());
+			String state = String.format(regExp, address.getState());
+			String zipcode = String.format(regExp, address.getZipcode());
+			
+			int paramIndex = 1;
+			ps.setString(paramIndex++, line1);
+			ps.setString(paramIndex++, line2);
+			ps.setString(paramIndex++, city);
+			ps.setString(paramIndex++, state);
+			ps.setString(paramIndex, zipcode);
+			
+			ResultSet rs = ps.executeQuery();
+			
+			if (rs.next())
+				existingAddr = loader.loadSingle(rs);
+			
+		} catch (SQLException e) {
+			throw e;
+		} finally {
+			if (ps != null)
+				ps.close();
+			if (conn != null)
+				conn.close();
+		}
+		return existingAddr;
+	}
+	
+	
+	
+	/**
 	 * insert a new address as a part of a database transaction
 	 * Also, it will set the id in the passed object (the deliveryAddress parameter)
+	 * @param conn database connection
 	 * @param deliveryAddress address data (except the id). 
 	 * @return if the address is inserted, its id will be set and return true
 	 * @throws SQLException
@@ -162,7 +213,7 @@ public class AddressDAO {
 		PreparedStatement ps = null;
 		
 		try {
-			ps = conn.prepareStatement(INSERT_ADDR_SQL, Statement.RETURN_GENERATED_KEYS);
+			ps = conn.prepareStatement(INSERT_ADDR_QUERY, Statement.RETURN_GENERATED_KEYS);
 			
 			loader.loadParameters(ps, address);
 			if (ps.executeUpdate() != Values.ONE_ROW_AFFECTED)
@@ -181,11 +232,13 @@ public class AddressDAO {
 	}
 	
 	
+	private static final String SELECT_ALL_QUERY = "SELECT * FROM addresses";
+	private static final String SELECT_BY_ID_QUERY = SELECT_ALL_QUERY + " WHERE (address_id = ?)";
 	
-	private static final String SELECT_ALL_SQL = "SELECT * FROM addresses";
-	private static final String SELECT_BY_ID_SQL = SELECT_ALL_SQL + " WHERE (address_id = ?)";
+	private static final String INSERT_ADDR_QUERY = "INSERT INTO addresses (line1, line2, city, state, zipcode) VALUES (?,?,?,?,?)";
+	private static final String UPADTE_ADDR_QUERY = "UPDATE addresses SET line1=?, line2=?, city=?, state=?, zipcode=? WHERE (address_id=?)";
 	
-	private static final String INSERT_ADDR_SQL = "INSERT INTO addresses (line1, line2, city, state, zipcode) VALUES (?,?,?,?,?)";
-	private static final String UPADTE_ADDR_SQL = "UPDATE addresses SET line1=?, line2=?, city=?, state=?, zipcode=? WHERE (address_id=?)";
+	
+	private static final String SEARCH_ADDR_QUERY = SELECT_ALL_QUERY + " WHERE line1 LIKE ? AND line2 LIKE ? AND city LIKE ? AND state LIKE ? AND zipcode LIKE ?";
 	
 }

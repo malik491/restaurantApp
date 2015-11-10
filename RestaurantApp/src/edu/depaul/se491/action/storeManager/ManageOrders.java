@@ -1,4 +1,4 @@
-package edu.depaul.se491.action.order;
+package edu.depaul.se491.action.storeManager;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -11,42 +11,37 @@ import javax.servlet.http.HttpServletResponse;
 
 import edu.depaul.se491.action.BaseAction;
 import edu.depaul.se491.bean.OrderBean;
-import edu.depaul.se491.enums.OrderStatus;
 import edu.depaul.se491.util.ExceptionUtil;
 
 /**
- * List orders with 'SUBMITTED' order status
+ * Manage orders
+ * store manager will use this to manage all orders
  * @author Malik
  */
-
-@WebServlet("/listSubmitted")
-public class ListSubmittedOrders extends BaseAction {
+@WebServlet("/manager/manageOrders")
+public class ManageOrders extends BaseAction {
 	private static final long serialVersionUID = 1L;
 	
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) 
 			throws ServletException, IOException 
 	{
 		List<OrderBean> orders = null;
 		String jspMsg = null;
 		
 		try {
-			orders = orderDAO.getAllWithStatus(OrderStatus.SUBMITTED);
+			orders = orderDAO.getAll();
 		} catch (SQLException e) {
-			ExceptionUtil.printException(e, "ListSubmittedOrders");
+			ExceptionUtil.printException(e, "storeManager/ManageOrders");
 			jspMsg = "DB Exception Occured. See Console for Details.";
 		}
 		
-		if (orders != null) {
-			// set orders for the jsp
-			request.setAttribute("orders", orders);
-		} else {
-			// set message for the jsp
-			request.setAttribute("msg", jspMsg);
-		}
+		// set orders for the jsp
+		req.setAttribute("orders", orders);
+		req.setAttribute("msg", jspMsg);
 		
-		String jspURL = "/listOrders.jsp";
-		getServletContext().getRequestDispatcher(jspURL).forward(request, response);
+		String jspURL = "/manager/manageOrders.jsp";
+		getServletContext().getRequestDispatcher(jspURL).forward(req, resp);
 	}
 
 	@Override

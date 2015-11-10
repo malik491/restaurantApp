@@ -36,7 +36,7 @@ public class OrderDAO {
 	 * @throws SQLException
 	 */
 	public List<OrderBean> getAll() throws SQLException {
-		return getMultiple(SELECT_ALL_QUERY, null);
+		return getMultiple(SELECT_ALL_WITH_ORDER_QUERY, null);
 	}
 	
 	/**
@@ -219,6 +219,21 @@ public class OrderDAO {
 		return true;
 	}
 	
+	
+	/**
+	 * delete an order from the database if exists.
+	 * @param orderId
+	 * @return true if an order if found and has been deleted
+	 * @throws SQLException
+	 */
+	public boolean delete(long orderId) throws SQLException {
+		/**
+		 * no implementation yet
+		 */
+		return false;
+	}
+	
+	
 	/**
 	 * Insert a new order as a part of a database transaction
 	 * Also, it will set the id in the passed object (the order parameter)
@@ -247,6 +262,7 @@ public class OrderDAO {
 		}
 		return true;
 	}
+	
 	
 	
 	/**
@@ -288,6 +304,8 @@ public class OrderDAO {
 	/* list of queries for PreparedStatement (pre-compiled objects)*/
 	private static final String SELECT_ALL_QUERY = 
 			  "SELECT o.*, a.line1, a.line2, a.city, a.state, a.zipcode FROM orders as o LEFT JOIN addresses as a ON (o.address_id = a.address_id)";
+	private static final String SELECT_ALL_WITH_ORDER_QUERY =
+			SELECT_ALL_QUERY + " ORDER BY (o.order_id)";
 	private static final String SELECT_BY_ID_QUERY = 
 			SELECT_ALL_QUERY + " WHERE (o.order_id = ?)";
 	private static final String SELECT_BY_STATUS_QUERY = 

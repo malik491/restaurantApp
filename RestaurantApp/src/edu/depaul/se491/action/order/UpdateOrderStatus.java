@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import edu.depaul.se491.action.BaseAction;
-import edu.depaul.se491.util.DAOUtil;
+import edu.depaul.se491.util.ExceptionUtil;
 
 /**
  * update order status
@@ -24,8 +24,7 @@ public class UpdateOrderStatus extends BaseAction {
 	private static final long serialVersionUID = 1L;
 
 	@Override
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		super.doGet(req, resp);
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
 		// logic for updating order status order
 		// all xyzDAO objects (such as orderDAO) are in the BaseAction (parent) so 
@@ -34,14 +33,14 @@ public class UpdateOrderStatus extends BaseAction {
 		try {
 			orderDAO.getAll();
 		} catch (SQLException e) {
-			DAOUtil.printException(e, "UpdateOrderStatus");
+			ExceptionUtil.printException(e, "UpdateOrderStatus");
 		}
 				
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		doGet(req, resp);
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doGet(request, response);
 	}
 
 }

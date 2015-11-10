@@ -17,6 +17,7 @@ import edu.depaul.se491.dao.mysql.UserDAO;
  *
  */
 public abstract class BaseAction extends HttpServlet {
+	private static final long serialVersionUID = 1L;
 	protected static DAOFactory factory;
 	protected static AddressDAO addressDAO;
 	protected static AccountDAO accountDAO;

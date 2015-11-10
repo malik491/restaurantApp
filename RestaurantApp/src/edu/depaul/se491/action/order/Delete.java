@@ -1,56 +1,47 @@
-/**
- * 
- */
 package edu.depaul.se491.action.order;
 
 import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.gson.Gson;
-
 import edu.depaul.se491.action.BaseAction;
-import edu.depaul.se491.bean.MenuItemBean;
 import edu.depaul.se491.util.ExceptionUtil;
 
-
 /**
- * Add order Servlet
+ * Delete an existing order
  * @author Malik
+ *
  */
-
-@WebServlet("/addOrder")
-public class AddOrder extends BaseAction {
+@WebServlet("/order/delete")
+public class Delete extends BaseAction {
 	private static final long serialVersionUID = 1L;
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		List<MenuItemBean> menuItems = null;
-		String jsonMenuItems = null;
+		String orderId = request.getParameter("orderId");
 		String jspMsg = null;
 		
 		try {
-			menuItems = menuItemDAO.getAll();
-			jsonMenuItems = new Gson().toJson(menuItems);
+			if (orderId == null) {
+				jspMsg = "Cannot delete order. Unknown Order ID.";
+			} else {
+				boolean deleted = orderDAO.delete(Long.valueOf(orderId));
+				if (deleted)
+					jspMsg = "Successfully deleted order";
+				else
+					jspMsg = "Failed to delete order. See console for details";				
+			}
 			
 		} catch (Exception e) {
-			ExceptionUtil.printException(e, "AddOrder");
+			ExceptionUtil.printException(e, "order/Delete");
 			jspMsg = "Exception Occured. See Console for Details.";
 		}
+
+		request.setAttribute("msg", jspMsg);
 		
-		if (menuItems != null) {
-			request.setAttribute("menuItems", menuItems);
-			request.setAttribute("jsonMenuItems", jsonMenuItems);
-		} else {
-			request.setAttribute("msg", jspMsg);
-		}
-		
-		String jspURL = "/addOrder.jsp";
+		String jspURL = "/order/delete.jsp";
 		getServletContext().getRequestDispatcher(jspURL).forward(request, response);
 	}
 
@@ -58,5 +49,5 @@ public class AddOrder extends BaseAction {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doGet(request, response);
 	}
-	
+
 }
