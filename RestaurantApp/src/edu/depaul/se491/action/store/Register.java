@@ -1,10 +1,9 @@
 /**
  * 
  */
-package edu.depaul.se491.action.order;
+package edu.depaul.se491.action.store;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -18,14 +17,13 @@ import edu.depaul.se491.action.BaseAction;
 import edu.depaul.se491.bean.MenuItemBean;
 import edu.depaul.se491.util.ExceptionUtil;
 
-
 /**
- * Add order Servlet
+ * Point of Sale
+ * Store employee will use this to add order 
  * @author Malik
  */
-
-@WebServlet("/addOrder")
-public class AddOrder extends BaseAction {
+@WebServlet("/store/register")
+public class Register extends BaseAction {
 	private static final long serialVersionUID = 1L;
 
 	@Override
@@ -39,7 +37,7 @@ public class AddOrder extends BaseAction {
 			jsonMenuItems = new Gson().toJson(menuItems);
 			
 		} catch (Exception e) {
-			ExceptionUtil.printException(e, "AddOrder");
+			ExceptionUtil.printException(e, "store/Register");
 			jspMsg = "Exception Occured. See Console for Details.";
 		}
 		
@@ -50,7 +48,7 @@ public class AddOrder extends BaseAction {
 			request.setAttribute("msg", jspMsg);
 		}
 		
-		String jspURL = "/addOrder.jsp";
+		String jspURL = "/store/register.jsp";
 		getServletContext().getRequestDispatcher(jspURL).forward(request, response);
 	}
 
@@ -58,5 +56,4 @@ public class AddOrder extends BaseAction {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doGet(request, response);
 	}
-	
 }

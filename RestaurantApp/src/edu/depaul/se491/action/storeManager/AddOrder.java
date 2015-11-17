@@ -1,6 +1,11 @@
-package edu.depaul.se491.action.menu;
+/**
+ * 
+ */
+package edu.depaul.se491.action.storeManager;
 
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -12,43 +17,38 @@ import edu.depaul.se491.bean.MenuItemBean;
 import edu.depaul.se491.util.ExceptionUtil;
 
 /**
- * View details of a menu item
+ * Add new order
+ * used by a manager. Employee will use point of sale to add orders
  * @author Malik
+ *
  */
-@WebServlet("/menu/viewItem")
-public class ViewItem extends BaseAction {
+@WebServlet("/manager/add/order")
+public class AddOrder extends BaseAction {
 	private static final long serialVersionUID = 1L;
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String menuItemId = request.getParameter("menuItemId");
-		MenuItemBean menuItem = null;
+		
 		String jspMsg = null;
+		List<MenuItemBean> menuItems = null;
 		
 		try {
-			if (menuItemId == null) {
-				jspMsg = "Cannot view menu item. Unknown meun item ID.";
-			} else {
-				menuItem = menuItemDAO.get(Long.valueOf(menuItemId));
-				if (menuItem == null)
-					jspMsg = String.format("Failed to find menu item with ID (%d)", menuItemId);
-				
-			}
+			menuItems = menuItemDAO.getAll();
 			
-		} catch (Exception e) {
-			ExceptionUtil.printException(e, "menu/View");
+		} catch (SQLException e) {
+			ExceptionUtil.printException(e, "stroeManager/AddOrder");
 			jspMsg = "Exception Occured. See Console for Details.";
 		}
 		
-		request.setAttribute("menuItem", menuItem);
-		request.setAttribute("msg", jspMsg);
-		
-		String jspURL = "/menu/viewItem.jsp";
+		request.setAttribute("menuItems", menuItems != null? menuItems: null);
+		request.setAttribute("msg", jspMsg != null? jspMsg : null);
+		String jspURL = "/manager/addNew/order.jsp";
 		getServletContext().getRequestDispatcher(jspURL).forward(request, response);
 	}
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
 		doGet(request, response);
 	}
 }

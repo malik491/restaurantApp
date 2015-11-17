@@ -3,6 +3,7 @@ package edu.depaul.se491.bean.loader;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,19 +55,20 @@ public class OrderBeanLoader implements BeanLoader<OrderBean>{
 	 */
 	@Override
 	public OrderBean loadSingle(ResultSet rs) throws SQLException {
-		boolean nullAddr = rs.getLong(ADDRESS_ID_LABEL) == Values.SQL_NULL;
-		AddressBean address = nullAddr? null : addressLoader.loadSingle(rs);
+		OrderBean bean = new OrderBean();
 		
-		OrderBean order = new OrderBean();
-		order.setId(rs.getLong(ORDER_ID_LABEL));
-		order.setDeliveryAddress(address);		
-		order.setStatus(OrderStatus.valueOf(rs.getString(ORDER_STATUS_LABEL)));
-		order.setType(OrderType.valueOf(rs.getString(ORDER_TYPE_LABEL)));
-		order.setTimestamp(rs.getTimestamp(ORDER_DATE_LABEL));
-		order.setTotal(rs.getDouble(ORDER_TOTAL_LABEL));
-		order.setConfirmation(rs.getString(ORDER_CONF_LABEL));
+		bean.setId(rs.getLong(ORDER_ID_LABEL));	
+		bean.setStatus(OrderStatus.valueOf(rs.getString(ORDER_STATUS_LABEL)));
+		bean.setType(OrderType.valueOf(rs.getString(ORDER_TYPE_LABEL)));
+		bean.setTimestamp(rs.getTimestamp(ORDER_TIMESTAMP_LABEL));
+		bean.setTotal(rs.getDouble(ORDER_TOTAL_LABEL));
+		bean.setConfirmation(rs.getString(ORDER_CONF_LABEL));
 		
-		return order;
+		boolean isNullAddr = rs.getLong(ADDRESS_ID_LABEL) == Values.SQL_NULL;
+		AddressBean address = isNullAddr? null : addressLoader.loadSingle(rs);
+		bean.setDeliveryAddress(address);	
+		
+		return bean;
 	}
 
 	/**
@@ -76,20 +78,17 @@ public class OrderBeanLoader implements BeanLoader<OrderBean>{
 	 * @return return the passed ps
 	 */
 	@Override
-	public PreparedStatement loadParameters(PreparedStatement ps, OrderBean bean) throws SQLException {
-		int paramIndex = 1;
-		
-		AddressBean addr = bean.getDeliveryAddress(); // null for pickup orders
-		if (addr == null)
-			ps.setNull(paramIndex++, Values.SQL_NULL);
-		else
-			ps.setLong(paramIndex++, addr.getId());
-		
-		ps.setString(paramIndex++, bean.getStatus().toString());
-		ps.setString(paramIndex++, bean.getType().toString());
+	public void loadParameters(PreparedStatement ps, OrderBean bean, int paramIndex) throws SQLException {
+		ps.setString(paramIndex++, bean.getStatus().name());
+		ps.setString(paramIndex++, bean.getType().name());
+		ps.setTimestamp(paramIndex++, new Timestamp(System.currentTimeMillis()));
 		ps.setDouble(paramIndex++, bean.getTotal());
-		ps.setString(paramIndex, bean.getConfirmation());
-		return ps;
-	}	
-	
+		ps.setString(paramIndex++, bean.getConfirmation());
+		
+		AddressBean address = bean.getDeliveryAddress(); // null for pickup orders
+		if (address == null)
+			ps.setNull(paramIndex, Values.SQL_NULL);
+		else
+			ps.setLong(paramIndex, address.getId());
+	}
 }

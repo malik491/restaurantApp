@@ -9,13 +9,15 @@
 </head>
 <body>
 	<div class="component">
+	<h1>Delete Order</h1>
 <%
 	String msg = (String) request.getAttribute("msg");
 	if (msg != null) {
-%> 		<h2><%=msg%></h2> 
+%> 		<h3><%=msg%></h3> 
 <%	} else {
-		getServletContext().getRequestDispatcher("/index.html").forward(request, response);
-		return;
+		// redirect to home page
+		String homePageURL = getServletContext().getContextPath() + "/index.html";
+		response.sendRedirect(homePageURL);
 	}
 %>
 	</div>

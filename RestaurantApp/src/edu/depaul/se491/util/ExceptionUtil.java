@@ -12,14 +12,15 @@ import java.sql.SQLException;
 public abstract class ExceptionUtil {
 	
 	public static synchronized void printException(Exception e, String servletName) {
-		System.err.println(e.getClass().getTypeName() + " Occured (servlet: " + servletName + ")");
-		System.err.println(e.getMessage());
+		System.out.println(e.getClass().getTypeName() + " Occured (servlet: " + servletName + ")");
+		System.out.println("Exception Message: " + e.getMessage() == null? " no meesage" : e.getMessage());
+		
 		if (e instanceof SQLException) {
-			System.err.println(((SQLException)e).getSQLState());
-			System.err.println(((SQLException)e).getErrorCode());			
+			System.out.println("SQLState: " + ((SQLException)e).getSQLState());
+			System.out.println("SQLErrorCode:" + ((SQLException)e).getErrorCode());			
 		}
-		System.err.flush();
-		e.printStackTrace();
+		System.out.flush();
+		e.printStackTrace(System.out);
 	}
 
 }

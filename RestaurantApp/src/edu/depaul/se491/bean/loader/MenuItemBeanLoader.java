@@ -62,12 +62,10 @@ public class MenuItemBeanLoader implements BeanLoader<MenuItemBean> {
 	 * @return return the passed ps
 	 */
 	@Override
-	public PreparedStatement loadParameters(PreparedStatement ps, MenuItemBean bean) throws SQLException {
-		int paramIndex = 1;
+	public void loadParameters(PreparedStatement ps, MenuItemBean bean, int paramIndex) throws SQLException {
 		ps.setString(paramIndex++, bean.getName());
 		ps.setString(paramIndex++, bean.getDescription());
 		ps.setDouble(paramIndex, bean.getPrice());
-		return ps;
 	}
 
 }

@@ -47,14 +47,13 @@ public class AddressBeanLoader implements BeanLoader<AddressBean> {
 	@Override
 	public AddressBean loadSingle(ResultSet rs) throws SQLException {
 		AddressBean bean = new AddressBean();		
+		
 		bean.setId(rs.getLong(ADDRESS_ID_LABEL));
 		bean.setLine1(rs.getString(ADDRESS_LINE1_LABEL));
 		bean.setLine2(rs.getString(ADDRESS_LINE2_LABEL));
 		bean.setCity(rs.getString(ADDRESS_CITY_LABEL));		
+		bean.setState(State.valueOf(rs.getString(ADDRESS_STATE_LABEL)));
 		bean.setZipcode(rs.getString(ADDRESS_ZIPCODE_LABEL));
-
-		State state = State.valueOf(rs.getString(ADDRESS_STATE_LABEL));
-		bean.setState(state);
 		
 		return bean;
 	}
@@ -66,14 +65,12 @@ public class AddressBeanLoader implements BeanLoader<AddressBean> {
 	 * @return return the passed ps
 	 */
 	@Override
-	public PreparedStatement loadParameters(PreparedStatement ps, AddressBean bean) throws SQLException {		
-		int paramIndex = 1;
+	public void loadParameters(PreparedStatement ps, AddressBean bean, int paramIndex) throws SQLException {		
 		ps.setString(paramIndex++, bean.getLine1());
 		ps.setString(paramIndex++, bean.getLine2());
 		ps.setString(paramIndex++, bean.getCity());
 		ps.setString(paramIndex++, bean.getState().name());
 		ps.setString(paramIndex, bean.getZipcode());
-		return ps;
 	}
 
 	

@@ -1,54 +1,48 @@
-/**
- * 
- */
-package edu.depaul.se491.action.store;
+package edu.depaul.se491.action.account;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.gson.Gson;
-
 import edu.depaul.se491.action.BaseAction;
-import edu.depaul.se491.bean.MenuItemBean;
+import edu.depaul.se491.bean.AccountBean;
 import edu.depaul.se491.util.ExceptionUtil;
+import edu.depaul.se491.util.ParametersUtil;
 
 /**
- * Point of Sale
- * Store employee will use this to add order 
+ * View an Account
  * @author Malik
  */
-@WebServlet("/store/pos")
-public class POS extends BaseAction {
+
+@WebServlet("/account/view")
+public class View extends BaseAction {
 	private static final long serialVersionUID = 1L;
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		List<MenuItemBean> menuItems = null;
-		String jsonMenuItems = null;
-		String jspMsg = null;
+		String username = ParametersUtil.validateString(request.getParameter("username"));
+		
+		AccountBean account = null;
+		String jspMsg = "Cannot view account. Invalid or missing username.";
 		
 		try {
-			menuItems = menuItemDAO.getAll();
-			jsonMenuItems = new Gson().toJson(menuItems);
-			
+			if (username != null) {
+				account = accountDAO.get(username);
+				if (account == null)
+					jspMsg = String.format("Cannot view account. No account with username (%d)", username);
+			}
 		} catch (Exception e) {
-			ExceptionUtil.printException(e, "emp/POS");
+			ExceptionUtil.printException(e, "menuItem/View");
 			jspMsg = "Exception Occured. See Console for Details.";
 		}
 		
-		if (menuItems != null) {
-			request.setAttribute("menuItems", menuItems);
-			request.setAttribute("jsonMenuItems", jsonMenuItems);
-		} else {
-			request.setAttribute("msg", jspMsg);
-		}
+		request.setAttribute("account", account);
+		request.setAttribute("msg", jspMsg);
 		
-		String jspURL = "/store/pos.jsp";
+		String jspURL = "/account/view.jsp";
 		getServletContext().getRequestDispatcher(jspURL).forward(request, response);
 	}
 

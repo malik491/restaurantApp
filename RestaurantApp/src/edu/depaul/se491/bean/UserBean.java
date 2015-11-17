@@ -11,34 +11,16 @@ import edu.depaul.se491.util.Values;
 public class UserBean implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
-	private long id;
 	private String firstName, lastName;
 	private String email, phone;
 	private AddressBean address;
 	
 	/**
-	 * construct an empty user with no id
+	 * construct an empty user
+	 * phone field defaults to empty string
 	 */
 	public UserBean() {
-		this.id = Values.UNKNOWN;
-		this.email = Values.EMPTY_STRING;
 		this.phone = Values.EMPTY_STRING;
-	}
-	
-	/**
-	 * return user id
-	 * @return
-	 */
-	public long getId() {
-		return id;
-	}
-
-	/**
-	 * set user id
-	 * @param id
-	 */
-	public void setId(long id) {
-		this.id = id;
 	}
 		
 	/**

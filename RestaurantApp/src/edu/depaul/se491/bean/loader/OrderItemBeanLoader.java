@@ -50,17 +50,19 @@ public class OrderItemBeanLoader implements BeanLoader<OrderItemBean> {
 	 */
 	@Override
 	public OrderItemBean loadSingle(ResultSet rs) throws SQLException {
+		OrderItemBean bean = new OrderItemBean();
+		
 		MenuItemBean menuItem = loader.loadSingle(rs);
 		
-		OrderItemBean bean = new OrderItemBean();
 		bean.setMenuItem(menuItem);
 		bean.setQuantity(rs.getInt(QUANTITY_LABEL));
+		
 		return bean;
 	}
 
 	
 	@Override
-	public PreparedStatement loadParameters(PreparedStatement ps, OrderItemBean bean) throws SQLException {
+	public void loadParameters(PreparedStatement ps, OrderItemBean bean, int paramIndex) throws SQLException {
 		throw new SQLException("Unsupported method. order id paramater is needed.");
 	}
 	
@@ -72,12 +74,10 @@ public class OrderItemBeanLoader implements BeanLoader<OrderItemBean> {
 	 * @param orderId orderId for the order contain this order item
 	 * @return return the passed ps
 	 */
-	public PreparedStatement loadParameters(PreparedStatement ps, OrderItemBean bean, long orderId) throws SQLException {
-		int paramIndex = 1;
+	public void loadParameters(PreparedStatement ps, OrderItemBean bean, int paramIndex, long orderId) throws SQLException {
 		ps.setLong(paramIndex++, orderId);
 		ps.setLong(paramIndex++, bean.getMenuItem().getId());
 		ps.setLong(paramIndex, bean.getQuantity());
-		
-		return ps;
+
 	}
 }

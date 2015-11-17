@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import edu.depaul.se491.action.BaseAction;
 import edu.depaul.se491.bean.OrderBean;
 import edu.depaul.se491.util.ExceptionUtil;
+import edu.depaul.se491.util.ParametersUtil;
 
 /**
  * @author Malik
@@ -21,20 +22,18 @@ public class View extends BaseAction {
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String orderId = request.getParameter("orderId");
+		String orderIdParam = request.getParameter("orderId");
+		Long orderId = ParametersUtil.parseLong(orderIdParam);
+		
 		OrderBean order = null;
-		String jspMsg = null;
+		String jspMsg = "Cannot View order. Invalid or missing Order ID.";
 		
 		try {
-			if (orderId == null) {
-				jspMsg = "Cannot View order. Unknown Order ID.";
-			} else {
-				order = orderDAO.get(Long.valueOf(orderId));
+			if (orderId != null) {
+				order = orderDAO.get(orderId);
 				if (order == null)
-					jspMsg = String.format("Failed to find order with ID (%d)", orderId);
-				
+					jspMsg = String.format("Cannot view order. No order with ID (%d)", orderId);
 			}
-			
 		} catch (Exception e) {
 			ExceptionUtil.printException(e, "order/View");
 			jspMsg = "Exception Occured. See Console for Details.";

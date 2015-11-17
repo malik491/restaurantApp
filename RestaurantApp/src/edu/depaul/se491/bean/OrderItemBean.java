@@ -12,7 +12,11 @@ public class OrderItemBean implements Serializable {
 	private MenuItemBean menuItem;
 	private int quantity;
 	
-	
+	/**
+	 * construct an empty order item
+	 */
+	public OrderItemBean() {}
+		
 	/**
 	 * return the Menu Item associated with this Order Item
 	 * @return

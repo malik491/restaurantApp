@@ -1,7 +1,4 @@
-/**
- * 
- */
-package edu.depaul.se491.action.order;
+package edu.depaul.se491.action.storeManager;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -13,40 +10,34 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import edu.depaul.se491.action.BaseAction;
-import edu.depaul.se491.bean.OrderBean;
+import edu.depaul.se491.bean.AccountBean;
 import edu.depaul.se491.util.ExceptionUtil;
 
 /**
- * List ALL orders in the database
+ * Manage Accounts
  * @author Malik
  */
-@WebServlet("/listAll")
-public class ListAllOrders extends BaseAction {
+@WebServlet("/manager/manage/accounts")
+public class ManageAccounts extends BaseAction {
 	private static final long serialVersionUID = 1L;
 	
 	@Override
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp) 
-			throws ServletException, IOException 
-	{
-		List<OrderBean> orders = null;
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException	{
+		List<AccountBean> accounts = null;
 		String jspMsg = null;
 		
 		try {
-			orders = orderDAO.getAll();
+			accounts = accountDAO.getAll();
 		} catch (SQLException e) {
-			ExceptionUtil.printException(e, "ListAllOrder");
+			ExceptionUtil.printException(e, "storeManager/ManageAccounts");
 			jspMsg = "DB Exception Occured. See Console for Details.";
 		}
 		
-		if (orders != null) {
-			// set orders for the jsp
-			req.setAttribute("orders", orders);
-		} else {
-			// set message for the jsp
-			req.setAttribute("msg", jspMsg);
-		}
+		// set orders for the jsp
+		req.setAttribute("accounts", accounts);
+		req.setAttribute("msg", jspMsg);
 		
-		String jspURL = "/listOrders.jsp";
+		String jspURL = "/manager/manage/accounts.jsp";
 		getServletContext().getRequestDispatcher(jspURL).forward(req, resp);
 	}
 

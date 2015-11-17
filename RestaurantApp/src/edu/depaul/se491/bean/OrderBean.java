@@ -20,12 +20,12 @@ public class OrderBean implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private long id;
-	private AddressBean deliveryAddress;
 	private OrderStatus status;
 	private OrderType type;
 	private Timestamp timestamp;
 	private double total;
 	private String confirmation;
+	private AddressBean deliveryAddress;
 	private final Map<String, OrderItemBean> orderItems;
 	
 	/**

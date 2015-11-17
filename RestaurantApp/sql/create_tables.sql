@@ -16,13 +16,15 @@ CREATE TABLE addresses (
 
 CREATE TABLE orders (
 	order_id       		BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-	address_id    		BIGINT UNSIGNED DEFAULT NULL,
 	
 	order_status		ENUM ('SUBMITTED', 'PREPARED', 'CANCELED') NOT NULL,
 	order_type			ENUM ('PICKUP', 'DELIVERY') NOT NULL,
-	order_date			TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	order_total			DECIMAL(5, 2) NOT NULL,
+	order_timestamp		TIMESTAMP NOT NULL,
+	order_total			DECIMAL(7, 2) NOT NULL,
 	order_confirmation  VARCHAR(50) NOT NULL,
+	
+	address_id    		BIGINT UNSIGNED DEFAULT NULL,
+	
 	
 	PRIMARY KEY (order_id),
 	FOREIGN KEY (address_id) REFERENCES addresses (address_id)
@@ -42,7 +44,7 @@ CREATE TABLE order_items (
 	order_id            BIGINT UNSIGNED NOT NULL,
 	menu_item_id		BIGINT UNSIGNED NOT NULL,
 	
-	quantity			TINYINT unsigned NOT NULL,
+	quantity			SMALLINT unsigned NOT NULL,
 	
 	PRIMARY KEY (order_id, menu_item_id),
 	FOREIGN KEY (order_id) REFERENCES orders (order_id),
@@ -50,27 +52,24 @@ CREATE TABLE order_items (
 );
 
 CREATE TABLE users (
-	user_id				BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-	address_id			BIGINT UNSIGNED NOT NULL,
+	user_email			VARCHAR(30) NOT NULL,	
 	
 	first_name			VARCHAR(20) NOT NULL,
 	last_name			VARCHAR(20) NOT NULL,
-	email				VARCHAR(30) DEFAULT '',
 	phone				VARCHAR(15) DEFAULT '',
+	address_id			BIGINT UNSIGNED NOT NULL,
 	
-	PRIMARY KEY (user_id),
+	PRIMARY KEY (user_email),
 	FOREIGN KEY (address_id) REFERENCES addresses (address_id)
 );
 
 CREATE TABLE accounts (
-	account_id			BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-	user_id             BIGINT UNSIGNED NOT NULL,
-	
-	account_role		enum ('ADMIN', 'MANAGER', 'EMPLOYEE', 'CUSTOMER') NOT NULL,	
-	username			VARCHAR(30)  NOT NULL,
+	username			VARCHAR(30) NOT NULL,
 	password			VARCHAR(60) NOT NULL,
+	account_role		enum ('ADMIN', 'MANAGER', 'EMPLOYEE', 'CUSTOMER') NOT NULL,		
 	
-	PRIMARY KEY (account_id),
-	FOREIGN KEY (user_id) REFERENCES users (user_id),
-	UNIQUE(username)
+	user_email			VARCHAR(30) NOT NULL,
+	
+	PRIMARY KEY (username),
+	FOREIGN KEY (user_email) REFERENCES users (user_email)
 );

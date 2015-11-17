@@ -20,6 +20,7 @@ public class AddressBean implements Serializable {
 	
 	/**
 	 * construct an empty address with no id
+	 * line2 defaults to empty string
 	 */
 	public AddressBean() {
 		this.id = Values.UNKNOWN;

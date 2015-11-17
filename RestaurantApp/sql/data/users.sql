@@ -1,8 +1,14 @@
 /* user 1: admin*/
-	INSERT INTO users (address_id, first_name, last_name, email, phone) VALUES (1, 'admin', 'lastName', 'admin.lastName@example.com', '1234567890');
+	INSERT INTO users (user_email, first_name, last_name, phone, address_id) 
+	VALUES ('admin1@email.com', 'adminFirst', 'adminLast', '1234567890', 1);
 /* user 2: manager*/
-	INSERT INTO users (address_id, first_name, last_name, email, phone) VALUES (2, 'manager', 'lastName', 'manager.lastName@example.com', '1234567890');
+	INSERT INTO users (user_email, first_name, last_name, phone, address_id) 
+	VALUES ('manager1@email.com', 'managerFirst', 'managerLast', '1234567890', 2);
+
 /* user 3: employee 1*/
-	INSERT INTO users (address_id, first_name, last_name, email, phone) VALUES (3, 'employee1', 'lastName', 'employee1@example.com', '1234567890');
+	INSERT INTO users (user_email, first_name, last_name, phone, address_id) 
+	VALUES ('employee1@email.com', 'employee1First', 'employee1Last', '1234567890', 3);
+
 /* user 4: employee 2*/
-	INSERT INTO users (address_id, first_name, last_name, email, phone)	VALUES (4, 'employee2', 'lastName', 'employee2@example.com', '1234567890');
+	INSERT INTO users (user_email, first_name, last_name, phone, address_id) 
+	VALUES ('employee2@email.com', 'employee2First', 'employee2Last', '1234567890', 4);

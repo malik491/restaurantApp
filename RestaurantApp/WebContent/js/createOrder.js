@@ -75,7 +75,7 @@ function placeOrder() {
 		  //sync
 		  var jsonData = JSON.stringify(order.orderItems);
 		  //console.log(jsonData);
-		  var encodedData = "reqType=ajax&orderItems=" + encodeURIComponent(jsonData);
+		  var encodedData = "requestType=ajax&orderItems=" + encodeURIComponent(jsonData);
 		  //console.log(encodedData);
 		  
 		  // for GET,use the url for both (1) servlet name and (2) data:

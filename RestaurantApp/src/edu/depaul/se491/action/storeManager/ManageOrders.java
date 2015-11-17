@@ -18,7 +18,7 @@ import edu.depaul.se491.util.ExceptionUtil;
  * store manager will use this to manage all orders
  * @author Malik
  */
-@WebServlet("/manager/manageOrders")
+@WebServlet("/manager/manage/orders")
 public class ManageOrders extends BaseAction {
 	private static final long serialVersionUID = 1L;
 	
@@ -40,7 +40,7 @@ public class ManageOrders extends BaseAction {
 		req.setAttribute("orders", orders);
 		req.setAttribute("msg", jspMsg);
 		
-		String jspURL = "/manager/manageOrders.jsp";
+		String jspURL = "/manager/manage/orders.jsp";
 		getServletContext().getRequestDispatcher(jspURL).forward(req, resp);
 	}
 

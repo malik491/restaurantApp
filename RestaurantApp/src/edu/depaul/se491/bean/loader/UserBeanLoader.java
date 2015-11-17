@@ -50,16 +50,17 @@ public class UserBeanLoader implements BeanLoader<UserBean> {
 	 */
 	@Override
 	public UserBean loadSingle(ResultSet rs) throws SQLException {
+		UserBean bean = new UserBean();
+		
 		AddressBean address = loader.loadSingle(rs);
 		
-		UserBean bean = new UserBean();
-		bean.setId(rs.getLong(USER_ID_LABEL));
+		bean.setEmail(rs.getString(USER_EMAIL_LABEL));
 		bean.setFirstName(rs.getString(USER_FIRST_NAME_LABEL));
 		bean.setLastName(rs.getString(USER_LAST_NAME_LABEL));
-		bean.setEmail(rs.getString(USER_EMAIL_LABEL));
 		bean.setPhone(rs.getString(USER_PHONE_LABEL));
 		bean.setAddress(address);
-		return null;
+		
+		return bean;
 	}
 
 	/**
@@ -69,14 +70,25 @@ public class UserBeanLoader implements BeanLoader<UserBean> {
 	 * @return return the passed ps
 	 */
 	@Override
-	public PreparedStatement loadParameters(PreparedStatement ps, UserBean bean) throws SQLException {
-		int paramIndex = 1;
-		ps.setLong(paramIndex++, bean.getAddress().getId());
+	public void loadParameters(PreparedStatement ps, UserBean bean, int paramIndex) throws SQLException {
+		ps.setString(paramIndex++, bean.getEmail());
 		ps.setString(paramIndex++, bean.getFirstName());
 		ps.setString(paramIndex++, bean.getLastName());
-		ps.setString(paramIndex++, bean.getEmail());
-		ps.setString(paramIndex, bean.getPhone());
-		return ps;
+		ps.setString(paramIndex++, bean.getPhone());
+		ps.setLong(paramIndex, bean.getAddress().getId());
+	}
+	
+	/**
+	 * populate the PreparedStatment with data in the User bean
+	 * @param ps preparedStatement with update sql string
+	 * @param bean user bean with data
+	 * @return return the passed ps
+	 */
+	public void loadUpdateParameters(PreparedStatement ps, UserBean bean, int paramIndex) throws SQLException {
+		ps.setString(paramIndex++, bean.getFirstName());
+		ps.setString(paramIndex++, bean.getLastName());
+		ps.setString(paramIndex++, bean.getPhone());
+		ps.setLong(paramIndex, bean.getAddress().getId());
 	}
 
 }

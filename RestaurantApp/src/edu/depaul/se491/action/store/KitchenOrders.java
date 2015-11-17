@@ -1,4 +1,7 @@
-package edu.depaul.se491.action.order;
+/**
+ * 
+ */
+package edu.depaul.se491.action.store;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -15,12 +18,12 @@ import edu.depaul.se491.enums.OrderStatus;
 import edu.depaul.se491.util.ExceptionUtil;
 
 /**
- * List orders with 'SUBMITTED' order status
+ * Kitchen terminal
+ * In-kitchen store employee will use this to update order status to prepared
  * @author Malik
  */
-
-@WebServlet("/listSubmitted")
-public class ListSubmittedOrders extends BaseAction {
+@WebServlet("/store/kitchenOrders")
+public class KitchenOrders extends BaseAction {
 	private static final long serialVersionUID = 1L;
 	
 	@Override
@@ -31,21 +34,18 @@ public class ListSubmittedOrders extends BaseAction {
 		String jspMsg = null;
 		
 		try {
+			// DB will sort orders by their order_timestamp in ascending order.
 			orders = orderDAO.getAllWithStatus(OrderStatus.SUBMITTED);
+			
 		} catch (SQLException e) {
-			ExceptionUtil.printException(e, "ListSubmittedOrders");
+			ExceptionUtil.printException(e, "store/KitchenOrders");
 			jspMsg = "DB Exception Occured. See Console for Details.";
 		}
 		
-		if (orders != null) {
-			// set orders for the jsp
-			request.setAttribute("orders", orders);
-		} else {
-			// set message for the jsp
-			request.setAttribute("msg", jspMsg);
-		}
+		request.setAttribute("orders", orders);
+		request.setAttribute("msg", jspMsg);
 		
-		String jspURL = "/listOrders.jsp";
+		String jspURL = "/store/kitchenOrders.jsp";
 		getServletContext().getRequestDispatcher(jspURL).forward(request, response);
 	}
 
@@ -54,5 +54,5 @@ public class ListSubmittedOrders extends BaseAction {
 			throws ServletException, IOException 
 	{
 		doGet(request, response);
-	}
+	} 
 }

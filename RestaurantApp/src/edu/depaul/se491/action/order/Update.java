@@ -2,7 +2,7 @@ package edu.depaul.se491.action.order;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.SQLException;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -12,10 +12,13 @@ import javax.servlet.http.HttpServletResponse;
 import edu.depaul.se491.action.BaseAction;
 import edu.depaul.se491.bean.AddressBean;
 import edu.depaul.se491.bean.OrderBean;
+import edu.depaul.se491.bean.OrderItemBean;
 import edu.depaul.se491.enums.OrderStatus;
 import edu.depaul.se491.enums.OrderType;
 import edu.depaul.se491.enums.State;
+import edu.depaul.se491.util.DBLabels;
 import edu.depaul.se491.util.ExceptionUtil;
+import edu.depaul.se491.util.ParametersUtil;
 import edu.depaul.se491.util.Values;
 
 /**
@@ -30,58 +33,67 @@ public class Update extends BaseAction {
 	private static final long serialVersionUID = 1L;
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		String orderId = request.getParameter("orderId");
-		String reqType = request.getParameter("reqType");
-		boolean isAjax = reqType != null && reqType.equals("ajax");
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String orderIdParam = ParametersUtil.validateString(request.getParameter("orderId"));
+		String requestTypeParam = ParametersUtil.validateString(request.getParameter("requestType"));
+		String firstUpdateParam = ParametersUtil.validateString(request.getParameter("firstUpdate"));
 
+		Long orderId = ParametersUtil.parseLong(orderIdParam);
+		boolean isAjax = ParametersUtil.isAjaxRequest(requestTypeParam);
+		boolean isFirstUpdate = (!isAjax && ParametersUtil.isFirstUpdate(firstUpdateParam));
+		
 		OrderBean updatedOrder = null;
-		String jspMsg = null;
+		String msg = "Cannot update order. Invalid Or missing order ID parameters.";
 		boolean updated = false;
 
 		try {
-			if (orderId == null) {
-				jspMsg = "Cannot update order. Missing order ID.";
-			} else {
-				OrderBean oldOrder = orderDAO.get(Long.valueOf(orderId));
-				if (oldOrder == null) {
-					jspMsg = "Failed to find order.";
-				} else {
-					if (isAjax) {
-						/* handle ajax request (coming from kitchen terminal)*/
-						if (oldOrder.getStatus() == OrderStatus.SUBMITTED) {
-							oldOrder.setStatus(OrderStatus.PREPARED);
-							updated = orderDAO.update(oldOrder);
-						}
+			if (orderId != null) {
+				msg = String.format("Cannot update order. No order with id (%d)", orderId);
+				
+				OrderBean order = orderDAO.get(orderId);
+				if (order != null) {
+					boolean validUpdateParams = false;
+					
+					if (isFirstUpdate) {
+						// first time visiting the update page; no update parameters to process
+						updatedOrder = order;
+						msg = null;
+					} else if (isAjax) {
+						// handle status update from kitchen terminal
+						msg = String.format("Cannot update order. Order status: Expected (SUBMITTED) Found (%s).", order.getStatus().toString());
+						validUpdateParams = processAjaxParameters(request, order);
 					} else {
-						boolean validParams = hasValidParameters(request, oldOrder);
-						if (validParams) {
-							updated = validParams ? orderDAO.update(oldOrder) : false;							
-						}
-						// get the updated order from DB (to make sure the updates are saved)
-						updatedOrder = orderDAO.get(oldOrder.getId());
-						jspMsg = updated? "Successfuly updated the order" : Values.EMPTY_STRING;
+						// expect order update parameters
+						msg = "Cannot update order. Invalid parameters.";
+						validUpdateParams = processParameters(request, order);
+					}
+					
+					if (validUpdateParams) {
+						updated = orderDAO.update(order);
+						msg = updated? "Successfuly updated the order" : "Failed to update order.";
+						
+						// either way (updated or not) grab a fresh copy from the next JSP update
+						if (!isAjax)
+							updatedOrder = orderDAO.get(orderId);
 					}
 				}
 			}
 
 		} catch (Exception e) {
 			ExceptionUtil.printException(e, "order/Update");
-			jspMsg = "Exception Occured. See Console for Details.";
+			msg = "Exception Occured. See Console for Details.";
 		}
 
 		if (isAjax) {
 			/* write response to client using json */
 			response.setContentType("application/json");
 			PrintWriter out = response.getWriter();
-			String jsonResponse = String.format("{\"updated\": %b}", updated);
+			String jsonResponse = String.format("{\"updated\": %b, \"message\":\"%s\"}", updated, msg);
 			out.print(jsonResponse);
 			out.flush();
 		} else {
-			/* send to a jsp for html */
 			request.setAttribute("order", updatedOrder);
-			request.setAttribute("msg", jspMsg);
+			request.setAttribute("msg", msg);
 
 			String jspURL = "/order/update.jsp";
 			getServletContext().getRequestDispatcher(jspURL).forward(request, response);
@@ -95,115 +107,134 @@ public class Update extends BaseAction {
 		doGet(request, response);
 	}
 
-	private boolean hasValidParameters(HttpServletRequest request, OrderBean order) throws SQLException {
-		String status = request.getParameter("status");
-		String type = request.getParameter("type");
+
+	private boolean processAjaxParameters(HttpServletRequest request, OrderBean order) {
+		boolean validParam = false;
+		
+		if (order.getStatus() == OrderStatus.SUBMITTED) {
+			order.setStatus(OrderStatus.PREPARED);
+			validParam = true;
+		}
+		return validParam;
+	}
+	
+	
+	private boolean processParameters(HttpServletRequest request, OrderBean order) {
+		String statusParam = ParametersUtil.validateString(request.getParameter("status"));
+		String typeParam = ParametersUtil.validateString(request.getParameter("type"));
 
 		// at least status or type param is included in the request
-		// not null and not empty strings (strings are trimmed to remove extra
-		// white spaces before checking for empty string)
-		boolean validParams = (status != null && !(status = status.trim()).isEmpty())
-				|| (type != null && !(type = type.trim()).isEmpty());
-
-		if (validParams && status != null) {
-			OrderStatus statusObj = OrderStatus.valueOf(status.toUpperCase());
-			validParams = statusObj != null;
-			if (validParams)
-				order.setStatus(statusObj);
+		boolean hasStatus = statusParam != null;
+		boolean hasType = typeParam != null;
+		
+		boolean hasValidParams = (hasStatus && hasType);
+		
+		// process order status
+		if (hasValidParams) {
+			OrderStatus status = OrderStatus.valueOf(statusParam.toUpperCase());
+			hasValidParams = status != null;
+			if (hasValidParams)
+				order.setStatus(status);
 		}
 
-		if (validParams && type != null) {
-			OrderType typeObj = OrderType.valueOf(type.toUpperCase());
-			validParams = typeObj != null;
-			if (validParams) {
-				if (typeObj == OrderType.PICKUP) {
-					order.setType(typeObj);
+		// process order type
+		if (hasValidParams) {
+			OrderType type = OrderType.valueOf(typeParam.toUpperCase());
+			hasValidParams = type != null;
+			if (hasValidParams) {
+				if (type == OrderType.PICKUP) {
+					// process pickup
+					order.setType(type);
 					order.setDeliveryAddress(null);
 				} else {
-					// update order type only when delivery address data is
-					// valid
-					validParams = updateOrderObjAddress(request, order);
-					if (validParams)
+					// process delivery address
+					hasValidParams = processAddressParameters(request, order);
+					if (hasValidParams)
 						order.setType(OrderType.DELIVERY);
 				}
 			}
 		}
-		return validParams;
+		
+		// process order items
+		if (hasValidParams) {
+			hasValidParams = processOrderItemsParameters(request, order);
+		}
+		
+		return hasValidParams;
 	}
 
-	/**
-	 * 
-	 * @param request
-	 * @param order
-	 *            order
-	 * @return
-	 * @throws SQLException
-	 */
-	private boolean updateOrderObjAddress(HttpServletRequest request, OrderBean order) throws SQLException {
-		String addrLine1 = request.getParameter("addrLine1");
-		String addrLine2 = request.getParameter("addrLine2");
-		String addrCity = request.getParameter("addrCity");
-		String addrState = request.getParameter("addrState");
-		String addrZipcode = request.getParameter("addrZipcode");
+	private boolean processAddressParameters(HttpServletRequest request, OrderBean order) {
+		String addrIdParam = ParametersUtil.validateString(request.getParameter("addrId"));
+		String line1Param = ParametersUtil.validateString(request.getParameter("addrLine1"));
+		String line2Param = ParametersUtil.validateString(request.getParameter("addrLine2"));
+		String cityParam = ParametersUtil.validateString(request.getParameter("addrCity"));
+		String stateParam = ParametersUtil.validateString(request.getParameter("addrState"));
+		String zipcodeParam = ParametersUtil.validateString(request.getParameter("addrZipcode"));
 
-		// not null and not empty strings (strings are trimmed to remove extra
-		// white spaces before checking for empty string)
-		boolean validParams = addrLine1 != null && !(addrLine1 = addrLine1.trim()).isEmpty() && addrCity != null
-				&& !(addrCity = addrCity.trim()).isEmpty() && addrState != null
-				&& !(addrState = addrState.trim()).isEmpty() && addrZipcode != null
-				&& !(addrZipcode = addrZipcode.trim()).isEmpty();
+		// addrId and line2Param are optional
+		boolean validParams = line1Param != null && cityParam != null && stateParam != null && zipcodeParam != null;
 
+		validParams &= ParametersUtil.validateLengths(new String[] {line1Param, cityParam, zipcodeParam}, new int[] {
+				DBLabels.ADDRS_LINE1_LEN_MAX, DBLabels.ADDRS_CITY_LEN_MAX, DBLabels.ADDRS_ZIPCODE_LEN_MAX });
+		
+		if (validParams && line2Param != null)
+			validParams = ParametersUtil.validateLength(line2Param, DBLabels.ADDRS_LINE2_LEN_MAX);
+		
 		if (!validParams)
 			return false;
 
-		State state = State.valueOf(addrState.toUpperCase());
+		State state = State.valueOf(stateParam.toUpperCase());
 		validParams = state != null;
 
 		if (!validParams)
 			return false;
 
+		Long addrId = addrIdParam != null? ParametersUtil.parseLong(addrIdParam): null;
+
 		AddressBean newAddr = new AddressBean();
-		newAddr.setLine1(addrLine1);
-		newAddr.setCity(addrCity);
+		newAddr.setId(addrId != null? addrId : Values.UNKNOWN);
+		newAddr.setLine1(line1Param);
+		newAddr.setLine2(line2Param != null? line2Param : Values.EMPTY_STRING);		
+		newAddr.setCity(cityParam);
 		newAddr.setState(state);
-		newAddr.setZipcode(addrZipcode);
-
-		// line 2 optional and by default is empty string
-		if (addrLine2 != null && !(addrLine2 = addrLine2.trim()).isEmpty())
-			newAddr.setLine2(addrLine2);
-
-		AddressBean oldAddr = order.getDeliveryAddress();
-		boolean sameAsOldAddr = oldAddr != null ? oldAddr.equals(newAddr) : false;
-		if (!sameAsOldAddr) {
-			AddressBean searchMatchAddr = addressDAO.search(newAddr);
-			if (searchMatchAddr != null) {
-				order.setDeliveryAddress(searchMatchAddr);
-			} else {
-				// call addAndUpdateNewDeliveryAddress to add the new address to
-				// the DB and then set its id
-				// set order delivery address only of newAddr is added and its
-				// id is set
-				validParams = addAndUpdateNewDeliveryAddress(order, newAddr);
-				if (validParams)
-					order.setDeliveryAddress(newAddr);
-			}
-		}
-
+		newAddr.setZipcode(zipcodeParam);
+		
+		order.setDeliveryAddress(newAddr);
+		
 		return validParams;
 	}
 
-	private boolean addAndUpdateNewDeliveryAddress(OrderBean order, AddressBean newAddr) throws SQLException {
+	private boolean processOrderItemsParameters(HttpServletRequest request, OrderBean order) {
+		List<OrderItemBean> oItems = order.getItems();
 
-		if (order.getDeliveryAddress() != null) {
-			// todo: remove old address in db only if no other orders are
-			// associated with that address too
+		boolean validParams = true;
+		boolean allZeroQty = true;
+		double newTotal = 0;
+		
+		for (OrderItemBean oItem :oItems) {
+			String id = Long.toString(oItem.getMenuItem().getId());
+			
+			// parameters for this order item
+			String quantityParam = ParametersUtil.validateString(request.getParameter("mItemQty-" + id));
+			Integer quantity = ParametersUtil.parseInt(quantityParam);
+			
+			validParams = quantity != null && quantity > -1 && quantity <= DBLabels.ORDER_ITEM_QUANTITY_MAX;
+			if (!validParams)
+				break;
+			
+			oItem.setQuantity(quantity);
+			newTotal += quantity * oItem.getMenuItem().getPrice();
+
+			allZeroQty &= quantity == 0;  
 		}
-
-		long newAddrId = addressDAO.add(newAddr);
-		boolean added = newAddrId != Values.UNKNOWN;
-		if (added)
-			newAddr.setId(newAddrId);
-		return added;
+		
+		// at least on updated order item quantity must be > 0
+		// (note: all orders will have at least one order item)
+		if (validParams && !allZeroQty && Double.compare(newTotal, DBLabels.ORDER_TOTAL_MAX) < 1)
+			order.setTotal(newTotal);
+		else
+			validParams = false;
+		
+		return validParams;
 	}
-
 }

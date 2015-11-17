@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.depaul.se491.dao.mysql;
 
 import java.sql.Connection;
@@ -11,14 +8,15 @@ import java.util.List;
 
 import com.mysql.jdbc.Statement;
 
+import edu.depaul.se491.bean.AddressBean;
 import edu.depaul.se491.bean.UserBean;
+import edu.depaul.se491.bean.loader.AddressBeanLoader;
 import edu.depaul.se491.bean.loader.UserBeanLoader;
 import edu.depaul.se491.dao.DAOFactory;
-import edu.depaul.se491.util.DAOUtil;
 import edu.depaul.se491.util.Values;
 
 /**
- * UserDAO to access/modify account data in the database
+ * UserDAO to access/modify user data in the database
  * @author Malik
  */
 public class UserDAO {
@@ -61,21 +59,21 @@ public class UserDAO {
 	}
 	
 	/**
-	 * return user associated with the given id
+	 * return user associated with the given email
 	 * Null is returned if there are no user for the given id
-	 * @param userId
-	 * @return
+	 * @param email user email
+	 * @return User or Null
 	 * @throws SQLException
 	 */
-	public UserBean get(long userId) throws SQLException {
+	public UserBean get(String email) throws SQLException {
 		Connection conn = null;
 		PreparedStatement ps = null;
 		UserBean user = null;
 		try {
 			conn = factory.getConnection();
-			ps = conn.prepareStatement(SELECT_BY_ID_QUERY);
+			ps = conn.prepareStatement(SELECT_BY_EMAIL_QUERY);
 			
-			ps.setLong(1, userId);
+			ps.setString(1, email);
 			ResultSet rs = ps.executeQuery();
 			
 			if (rs.next())
@@ -91,98 +89,94 @@ public class UserDAO {
 		}
 		return user;
 	}
-
+	
 	/**
-	 * add user to the database using the data in the userBean
-	 * @param user user data (excluding the id)
-	 * @return
+	 * insert a new user (including user address) as a part of a database transaction
+	 * @param conn connection
+	 * @param user user data. 
+	 * @return inserted user or Null
 	 * @throws SQLException
 	 */
-	public boolean add(UserBean user) throws SQLException {
-		Connection conn = null;
+	public UserBean transactionAdd(Connection conn, UserBean user) throws SQLException {
+		PreparedStatement ps = null;
+		UserBean resultUser = null;
 		try {
-			conn = factory.getConnection();
-			conn.setAutoCommit(false);
+			// add new address
+			AddressBean address = addressDAO.transactionAdd(conn, user.getAddress());
+			boolean added = address != null;
 			
+			if (added) {
+				ps = conn.prepareStatement(INSERT_USER_QUERY, Statement.RETURN_GENERATED_KEYS);
+				loader.loadParameters(ps, user, 1);
+				added = Values.validInsert(ps.executeUpdate());				
+			}
 			
-			/* Transaction begin :
-			 * - add address
-			 * - add user
-			 * - commit or roll back
-			 */
-			
-			// handle address
-			addressDAO.transactionAdd(conn, user.getAddress());
+			if (added) {
+				resultUser = new UserBean();
+				//set address to added address
+				resultUser.setAddress(address);
 				
-			// handle user
-			transactionAdd(conn, user);
+				// copy
+				resultUser.setEmail(user.getEmail());
+				resultUser.setFirstName(user.getFirstName());
+				resultUser.setLastName(user.getLastName());
+				resultUser.setPhone(user.getPhone());
+			}
+						
+		} catch (SQLException e) {
+			throw e;
+		} finally {
+			if (ps != null)
+				ps.close();
+		}
+		return resultUser;
+	}
 
-			// commit
-			conn.commit();
-		} catch (SQLException e1) {
-			SQLException excp = new SQLException(e1);
-			if (conn != null) {
-				try { conn.rollback();} 
-				catch (SQLException e2) {excp.addSuppressed(e2);}
-			}
-			throw excp;
-		} finally {
-			if (conn != null) {
-				conn.setAutoCommit(true);
-				conn.close();
-			}
-		}
-		return true;
-	}
-	
 	/**
-	 * update an existing user with new data in the userBean
-	 * @param user updated user data
-	 * @return
+	 * update an existing user as a part of database transaction
+	 * @param user updated user
+	 * @return true if user is updated
 	 * @throws SQLException
 	 */
-	public boolean update(UserBean user) throws SQLException {
-		Connection conn = null;
+	public boolean transactionUpdate(Connection conn, UserBean user) throws SQLException {
 		PreparedStatement ps = null;
+		boolean updated = false;
 		try {
-			conn = factory.getConnection();
-			ps = conn.prepareStatement(UPADTE_USER_QUERY);
+			updated = addressDAO.transactionUpdate(conn, user.getAddress());	
 			
-			loader.loadParameters(ps, user);
-			ps.setLong(6, user.getId());
-			
-			if (ps.executeUpdate() != Values.ONE_ROW_AFFECTED) 
-				throw new SQLException("UserDAO.update(): multiple (or 0) rows affected by update(user)");
-			
+			if (updated) {
+				ps = conn.prepareStatement(UPDATE_USER_QUERY);
+				int paramIndex = 1;
+				loader.loadUpdateParameters(ps, user, paramIndex);
+				ps.setString(paramIndex + UPDATE_USER_COLUMNS_COUNT, user.getEmail());	
+				updated = Values.validUpdate(ps.executeUpdate());
+			}
 		} catch (SQLException e) {
 			throw e;
 		} finally {
 			if (ps != null)
 				ps.close();
-			if (conn != null)
-				conn.close();
 		}
-		return true;
+		return updated;
 	}
 	
 	/**
-	 * insert a new user as a part of a database transaction
-	 * Also, it will set the id in the passed object (the deliveryAddress parameter)
-	 * @param user user data (except the id). 
-	 * @return if the user is inserted, its id will be set and return true
+	 * delete an existing user as a part of database transaction
+	 * @param conn
+	 * @param user
+	 * @return true if user is deleted
 	 * @throws SQLException
 	 */
-	public boolean transactionAdd(Connection conn, UserBean user) throws SQLException {
+	public boolean transactionDelete(Connection conn, UserBean user) throws SQLException {
 		PreparedStatement ps = null;
+		boolean deleted = false;
 		try {
-			ps = conn.prepareStatement(INSERT_USER_QUERY, Statement.RETURN_GENERATED_KEYS);
+			ps = conn.prepareStatement(DELETE_USER_QUERY);
+			ps.setString(1, user.getEmail());
+			deleted = Values.validDelete(ps.executeUpdate());
 			
-			loader.loadParameters(ps, user);
-			if (ps.executeUpdate() != Values.ONE_ROW_AFFECTED)
-				throw new SQLException("UserDAO.transactionAdd(): multiple (or 0) rows affected by transactionAdd(user)");
-			
-			// set the address id
-			user.setId(DAOUtil.getAutGeneratedKey(ps));
+			if (deleted)
+				deleted = addressDAO.transactionDelete(conn, user.getAddress().getId());	
 			
 		} catch (SQLException e) {
 			throw e;
@@ -190,12 +184,18 @@ public class UserDAO {
 			if (ps != null)
 				ps.close();
 		}
-		return true;
+		return deleted;
 	}
-	
+
 	
 	private static final String SELECT_ALL_QUERY = "SELECT * FROM users NATURAL JOIN addresses";
-	private static final String SELECT_BY_ID_QUERY = SELECT_ALL_QUERY + " WHERE (user_id = ?)";
-	private static final String INSERT_USER_QUERY = "INSERT INTO users (address_id, first_name, last_name, email, phone) VALUES (?,?,?,?,?)";	
-	private static final String UPADTE_USER_QUERY = "UPDATE users SET address_id=?, first_name=?, last_name=?, email=?, phone=? WHERE (user_id = ?)";	
+	private static final String SELECT_BY_EMAIL_QUERY = SELECT_ALL_QUERY + " WHERE (user_email = ?)";
+	
+	private static final String INSERT_USER_QUERY = "INSERT INTO users (user_email, first_name, last_name, phone, address_id) VALUES (?,?,?,?,?)";	
+	private static final String UPDATE_USER_QUERY = "UPDATE users SET first_name=?, last_name=?, phone=?, address_id=? WHERE (user_email = ?)";
+	private static final String DELETE_USER_QUERY = "DELETE FROM users WHERE (user_email = ?)";
+	
+	
+	private static final int UPDATE_USER_COLUMNS_COUNT = 4;
+	
 }

@@ -3,7 +3,6 @@ package edu.depaul.se491.bean;
 import java.io.Serializable;
 
 import edu.depaul.se491.enums.AccountRole;
-import edu.depaul.se491.util.Values;
 
 /**
  * AccountBean to store Account data
@@ -12,7 +11,6 @@ import edu.depaul.se491.util.Values;
 public class AccountBean implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
-	private long id;
 	private UserBean user;
 	private String username;
 	private String password;
@@ -20,28 +18,11 @@ public class AccountBean implements Serializable {
 	
 
 	/**
-	 * construct an empty Account with no id
+	 * construct an empty Account
 	 */
 	public AccountBean() {
-		id = Values.UNKNOWN;
 	}
 	
-	/**
-	 * return account id
-	 * @return
-	 */
-	public long getId() {
-		return id;
-	}
-	
-	/**
-	 * set account id
-	 * @param accountId
-	 */
-	public void setId(long accountId) {
-		this.id = accountId;
-	}
-
 	/**
 	 * return username
 	 * @return

@@ -5,8 +5,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Add Order</title>
-	<link rel="stylesheet" type="text/css" href="css/addOrder.css"/>
+	<title>Point Of Sale</title>
+	<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/addOrder.css"/>
 </head>
 <body>
 <%
@@ -17,8 +17,9 @@
 		if (msg != null) {
 			%> <h3><%=msg%></h3> <%
 		} else {
-			// send to the home page servlet
-			//getServletContext().getRequestDispatcher("/index.html").forward(request, response);			
+			// redirect to home page
+			String homePageURL = getServletContext().getContextPath() + "/index.html";
+			response.sendRedirect(homePageURL);		
 		}
 	} else {
 %>
@@ -58,8 +59,11 @@
 		
 		<div class="summaryDiv">
 			<textarea id="summary" rows="15" readonly></textarea>
-			<br>
-			<button type="button" onClick="placeOrder()"> Place Order </button>
+			<br> <br>
+			<table>
+				<tr> <td> Total : </td> <td id="total"> </td></tr>
+			</table>
+			<button type="button" class="myButton" onClick="placeOrder()"> Place Order </button>
 		</div>
 		
 		
@@ -67,7 +71,7 @@
 			String jsMenuItemsList = String.format("var menuItems = %s", jsonMenuItems);
 		%>
 		<script type="text/javascript"> <%=jsMenuItemsList%></script>
-		<script type="text/javascript" src="js/addorder.js"></script>
+		<script type="text/javascript" src="${pageContext.request.contextPath}/js/createOrder.js"></script>
 <%
 	}
 %>

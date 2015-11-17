@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -15,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import edu.depaul.se491.action.BaseAction;
 import edu.depaul.se491.bean.MenuItemBean;
@@ -23,7 +25,9 @@ import edu.depaul.se491.bean.OrderItemBean;
 import edu.depaul.se491.enums.OrderStatus;
 import edu.depaul.se491.enums.OrderType;
 import edu.depaul.se491.util.ConfirmationUtil;
+import edu.depaul.se491.util.DBLabels;
 import edu.depaul.se491.util.ExceptionUtil;
+import edu.depaul.se491.util.ParametersUtil;
 
 /**
  * Create a new order
@@ -38,33 +42,34 @@ public class Create extends BaseAction {
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String reqType = request.getParameter("reqType");
-		boolean isAjax = reqType != null && reqType.equals(AJAX_REQUEST);
+		String requestTypeParam = ParametersUtil.validateString(request.getParameter("requestType"));
+		boolean isAjax = ParametersUtil.isAjaxRequest(requestTypeParam);
+		
+		String msg = "Cannot create a new order. Invalid parameters";
 		boolean added = false;
 		
 		try {
-			
-			if (isAjax) {
-				/* ajax request */
-				OrderBean order = getNewOrder(request);
-				added = order != null? orderDAO.add(order) : false;				
-				
-			} else {
-				/* none ajax (regular) requests not supported for now */				
+			OrderBean order = getOrder(request, isAjax);
+			if (order != null) {
+				added = orderDAO.add(order);
+				msg = added? "Successfuly created a new order" : "Failed to create a new order";
 			}
-			
 		} catch (Exception e) {
 			ExceptionUtil.printException(e, "order/Create");
+			msg = "Exception Occured. See console for Details.";
 		}
 		
 		if (isAjax) {
 			response.setContentType("application/json");
 			PrintWriter out = response.getWriter();
-			String jsonResponse = String.format("{\"added\": %b}", added);
+			String jsonResponse = String.format("{\"added\": %b, \"message\":\"%s\"}", added, msg);
 			out.print(jsonResponse);
 			out.flush();
 		} else {
-			// jsp for none ajax
+			request.setAttribute("msg", msg);
+			
+			String jspURL = "/order/create.jsp";
+			getServletContext().getRequestDispatcher(jspURL).forward(request, response);
 		}
 	}
 
@@ -74,59 +79,113 @@ public class Create extends BaseAction {
 	}
 	
 
-	private OrderBean getNewOrder(HttpServletRequest request) throws IllegalArgumentException, SQLException {
-		OrderBean order = null;
+	private OrderBean getOrder(HttpServletRequest request, boolean isAjax) {
+		OrderBean newOrder = new OrderBean();
 		
-		// js for javascript
-		String jsOrderItems = request.getParameter("orderItems");
-		JSONOrderItem[] jsonOrderItemsList = null;
+		boolean validParams = isAjax? processAjaxParameters(request, newOrder) : processParameters(request, newOrder);
+		if (!validParams)
+			newOrder = null;
 		
-		jsOrderItems = jsOrderItems == null? null : (jsOrderItems = jsOrderItems.trim()).isEmpty()? null : jsOrderItems;
+		return newOrder;
+	}
+	
+	private boolean processParameters(HttpServletRequest request, OrderBean order) {
+		List<OrderItemBean> orderItems = new ArrayList<OrderItemBean>();
 		
-		if (jsOrderItems != null) {
+		boolean validParams = false;
+		double total = 0;
+		Menu menu = getCurrentMenu();
+		
+		for (MenuItemBean mItem: menu.menuItems) {
+			long id = mItem.getId();
+			String quantityParam = ParametersUtil.validateString(request.getParameter("mItemQty-" + id));
+			Integer quantity = ParametersUtil.parseInt(quantityParam);
 			
-			jsonOrderItemsList = new Gson().fromJson(jsOrderItems, JSONOrderItem[].class);
+			validParams = (quantity != null && quantity > 0 && quantity <= DBLabels.ORDER_ITEM_QUANTITY_MAX);
+			if (!validParams)
+				break;
 			
-			if (jsonOrderItemsList.length > 0) {
-				List<OrderItemBean> orderItems = new ArrayList<OrderItemBean>();
-				Menu menu = new Menu(menuItemDAO.getAll());
-				double orderTotal = 0;
-				
-				for(JSONOrderItem joi :jsonOrderItemsList) {
-					MenuItemBean mItem = menu.getItem(joi.menuItemId);
-					if (mItem == null)
-						throw new IllegalArgumentException("Invalid menuItem ID (" + joi.menuItemId + ")");
-					if (joi.quantity < 1)
-						throw new IllegalArgumentException("Invalid orderItem quantity (value" + joi.quantity + ")");
-					
-					OrderItemBean oItem = new OrderItemBean();
-					oItem.setMenuItem(mItem);
-					oItem.setQuantity(joi.quantity);
-					
-					orderItems.add(oItem);
-					orderTotal += (mItem.getPrice() * oItem.getQuantity());
-				}
-					
-				order = new OrderBean();
-				order.setItems(orderItems);
-				order.setStatus(OrderStatus.SUBMITTED);
-				order.setType(OrderType.PICKUP);
-				order.setTotal(orderTotal);
-				order.setConfirmation(ConfirmationUtil.getConfirmation());
-			}
+			total += (mItem.getPrice() * quantity);
+			OrderItemBean newOrderItem = new OrderItemBean();
+			newOrderItem.setMenuItem(mItem);
+			newOrderItem.setQuantity(quantity);
+			orderItems.add(newOrderItem);
 		}
-		return order;
+		
+		validParams &= orderItems.size() > 0;
+		validParams &= Double.compare(total, DBLabels.ORDER_TOTAL_MAX) < 1;
+		
+		if (validParams) {
+			order.setStatus(OrderStatus.SUBMITTED);
+			order.setType(OrderType.PICKUP);
+			order.setTotal(total);
+			order.setConfirmation(ConfirmationUtil.getConfirmation());
+			order.setItems(orderItems);
+		}
+
+		return validParams;
 	}
 	
 	
-	/**
-	 * Temp class to hold data for a js object
-	 * similar to OrderItemBean but with primitive datatype
-	 * purpose: GSon serialization
-	 */
-	private class JSONOrderItem {
-		long menuItemId;
-		int quantity;
+	private boolean processAjaxParameters(HttpServletRequest request, OrderBean order) {
+		String orderItemsListParam = ParametersUtil.validateString(request.getParameter("orderItemsList"));
+		
+		boolean validParams = (orderItemsListParam != null);
+		if (!validParams)
+			return validParams;
+		
+		// use Google JSON parser to parse a list of JSON-formated order item objects
+		OrderItemBean[] orderItems = null;
+		try {
+			orderItems = new Gson().fromJson(orderItemsListParam, OrderItemBean.class);
+		} catch (JsonSyntaxException e) {
+			ExceptionUtil.printException(e, "order/Create.processAjaxParameters(). Gson parsing");
+		}
+		
+		validParams = (orderItems != null && orderItems.length > 0);
+		
+		double total = 0;
+		if (validParams) {
+			Menu menu = getCurrentMenu();
+			for(OrderItemBean oItem :orderItems) {
+				MenuItemBean requestMenuItem = oItem.getMenuItem();
+				MenuItemBean dbMenuItem = menu.getItem(requestMenuItem.getId());
+				int quantity = oItem.getQuantity();
+				
+				if (dbMenuItem == null || quantity < 1 || quantity > DBLabels.ORDER_ITEM_QUANTITY_MAX)
+					validParams = false;
+				
+				// compare prices (menu item price can change when it is updated by a manager at any time)
+				if (validParams)
+					validParams = Double.compare(dbMenuItem.getPrice(), requestMenuItem.getPrice()) == 0;
+				
+				if (!validParams)
+					break;
+				
+				total += (dbMenuItem.getPrice() * quantity);
+			}
+		}
+		validParams &= Double.compare(total, DBLabels.ORDER_TOTAL_MAX) < 1;
+		
+		if (validParams) {
+			order.setStatus(OrderStatus.SUBMITTED);
+			order.setType(OrderType.PICKUP);
+			order.setTotal(total);
+			order.setConfirmation(ConfirmationUtil.getConfirmation());
+			order.setItems(Arrays.asList(orderItems));
+		}
+		
+		return validParams;
+	}
+	
+	private Menu getCurrentMenu() {
+		Menu menu = null;
+		try {
+			menu = new Menu(menuItemDAO.getAll());	
+		} catch (SQLException e) {
+			ExceptionUtil.printException(e, "order/Create.GetCurrentMenu()");
+		}
+		return menu;
 	}
 	
 	private class Menu {
@@ -145,6 +204,4 @@ public class Create extends BaseAction {
 		}
 		
 	}
-	private static final String AJAX_REQUEST = "ajax";
-
 }

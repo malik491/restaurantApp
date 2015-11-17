@@ -7,7 +7,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import edu.depaul.se491.action.BaseAction;
+import edu.depaul.se491.bean.OrderBean;
 import edu.depaul.se491.util.ExceptionUtil;
+import edu.depaul.se491.util.ParametersUtil;
 
 /**
  * Delete an existing order
@@ -20,20 +22,21 @@ public class Delete extends BaseAction {
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String orderId = request.getParameter("orderId");
-		String jspMsg = null;
+		String orderIdParam = request.getParameter("orderId");
+		Long orderId = ParametersUtil.parseLong(orderIdParam);
+		
+		String jspMsg = "Cannot delete order. Invalid or missing Order ID";
 		
 		try {
-			if (orderId == null) {
-				jspMsg = "Cannot delete order. Unknown Order ID.";
-			} else {
-				boolean deleted = orderDAO.delete(Long.valueOf(orderId));
-				if (deleted)
-					jspMsg = "Successfully deleted order";
-				else
-					jspMsg = "Failed to delete order. See console for details";				
+			if (orderId != null) {
+				jspMsg = String.format("Cannot delete order. No order with ID (%d)", orderId);
+				
+				OrderBean order = orderDAO.get(orderId);
+				if (order != null) {
+					boolean deleted = orderDAO.delete(order);
+					jspMsg = deleted? "Successfully deleted order" : "Failed to delete order";
+				}
 			}
-			
 		} catch (Exception e) {
 			ExceptionUtil.printException(e, "order/Delete");
 			jspMsg = "Exception Occured. See Console for Details.";
