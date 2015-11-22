@@ -102,10 +102,11 @@ public class UserDAO {
 		UserBean resultUser = null;
 		try {
 			// add new address
-			AddressBean address = addressDAO.transactionAdd(conn, user.getAddress());
-			boolean added = address != null;
+			AddressBean addedAddress = addressDAO.transactionAdd(conn, user.getAddress());
+			boolean added = addedAddress != null;
 			
 			if (added) {
+				user.setAddress(addedAddress);
 				ps = conn.prepareStatement(INSERT_USER_QUERY, Statement.RETURN_GENERATED_KEYS);
 				loader.loadParameters(ps, user, 1);
 				added = Values.validInsert(ps.executeUpdate());				
@@ -113,14 +114,12 @@ public class UserDAO {
 			
 			if (added) {
 				resultUser = new UserBean();
-				//set address to added address
-				resultUser.setAddress(address);
-				
 				// copy
 				resultUser.setEmail(user.getEmail());
 				resultUser.setFirstName(user.getFirstName());
 				resultUser.setLastName(user.getLastName());
 				resultUser.setPhone(user.getPhone());
+				resultUser.setAddress(user.getAddress());
 			}
 						
 		} catch (SQLException e) {

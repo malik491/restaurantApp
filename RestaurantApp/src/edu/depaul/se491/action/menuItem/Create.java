@@ -69,7 +69,6 @@ public class Create extends BaseAction {
 			validParams &= Double.compare(price, DBLabels.MENU_ITEM_PRICE_MAX) < 1;
 		
 		if (validParams) {
-			menuItem = new MenuItemBean();
 			menuItem.setName(nameParam);
 			menuItem.setDescription(descParam);
 			menuItem.setPrice(price);

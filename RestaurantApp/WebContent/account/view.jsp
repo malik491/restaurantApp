@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
 <%@ page import="edu.depaul.se491.bean.*" %>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -48,8 +49,7 @@
 				<tr> <td> Password </td> <td> <%= password %> </td></tr>
 				<tr> <td> Role </td> <td> <%= role %> </td></tr>
 				
-				<tr> </tr>
-				<tr> <td> User :</td> <td> </td> </tr>
+				<tr> <td> User Information</td> <td> </td> </tr>
 				<tr> <td> First Name </td> <td> <%= firstName %></td></tr>
 				<tr> <td> Last Name </td> <td> <%= lastName %> </td></tr>
 				<tr> <td> Email </td> <td> <%= email %> </td></tr>

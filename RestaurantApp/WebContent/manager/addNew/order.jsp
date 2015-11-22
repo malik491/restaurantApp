@@ -62,12 +62,12 @@
 	<%			}
 	%>			</select></td>									
 			</tr>	
-			<tr> <td> Delivery Address Information : </td> <td></td></tr>
+			<tr> <td> Delivery Address Information </td> <td></td></tr>
 			<tr> <td> Address 1	</td> <td> <input type="text" name="addrLine1" value="" manxlength="<%=line1LenMax%>"></td> </tr>
-			<tr> <td> Address 2	</td> <td> <input type="text" name="addrLine2" value="" manxlength="<%=line2LenMax%>">	</td> </tr>
+			<tr> <td> Address 2 (optional)	</td> <td> <input type="text" name="addrLine2" value="" manxlength="<%=line2LenMax%>">	</td> </tr>
 			<tr> <td> City	</td> <td>	<input type="text" name="addrCity" value="" manxlength="<%=cityLenMax%>"> </td> </tr>
 			<tr> <td> State	</td> 
-				 <td> <select name="addrState" form="addForm" required>
+				 <td> <select name="addrState" form="addForm">
 	<% 					for(State st: State.values()) {
 	%>					 	<option value="<%=st.toString()%>"> <%=st.toString()%></option>
 	<%					}

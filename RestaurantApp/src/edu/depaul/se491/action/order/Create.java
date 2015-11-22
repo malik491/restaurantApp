@@ -19,15 +19,18 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import edu.depaul.se491.action.BaseAction;
+import edu.depaul.se491.bean.AddressBean;
 import edu.depaul.se491.bean.MenuItemBean;
 import edu.depaul.se491.bean.OrderBean;
 import edu.depaul.se491.bean.OrderItemBean;
 import edu.depaul.se491.enums.OrderStatus;
 import edu.depaul.se491.enums.OrderType;
+import edu.depaul.se491.enums.State;
 import edu.depaul.se491.util.ConfirmationUtil;
 import edu.depaul.se491.util.DBLabels;
 import edu.depaul.se491.util.ExceptionUtil;
 import edu.depaul.se491.util.ParametersUtil;
+import edu.depaul.se491.util.Values;
 
 /**
  * Create a new order
@@ -90,6 +93,85 @@ public class Create extends BaseAction {
 	}
 	
 	private boolean processParameters(HttpServletRequest request, OrderBean order) {
+		String statusParam = ParametersUtil.validateString(request.getParameter("status"));
+		String typeParam = ParametersUtil.validateString(request.getParameter("type"));
+
+		boolean validParams = (statusParam != null && typeParam != null);
+		
+		// process order status
+		if (validParams) {
+			OrderStatus status = OrderStatus.valueOf(statusParam.toUpperCase());
+			validParams = status != null;
+			if (validParams)
+				order.setStatus(status);
+		}
+
+		// process order type
+		if (validParams) {
+			OrderType type = OrderType.valueOf(typeParam.toUpperCase());
+			validParams = type != null;
+			if (validParams) {
+				if (type == OrderType.PICKUP) {
+					// process pickup
+					order.setType(type);
+					order.setDeliveryAddress(null);
+				} else {
+					// process delivery address
+					validParams = processAddressParameters(request, order);
+					if (validParams)
+						order.setType(OrderType.DELIVERY);
+				}
+			}
+		}
+		
+		// process order items
+		if (validParams)
+			validParams = processOrderItemsParameters(request, order);
+		
+		// finally set order confirmation if all params are valid
+		if (validParams)
+			order.setConfirmation(ConfirmationUtil.getConfirmation());
+		
+		return validParams;
+	}
+	
+	private boolean processAddressParameters(HttpServletRequest request, OrderBean order) {
+		String line1Param = ParametersUtil.validateString(request.getParameter("addrLine1"));
+		String line2Param = ParametersUtil.validateString(request.getParameter("addrLine2"));
+		String cityParam = ParametersUtil.validateString(request.getParameter("addrCity"));
+		String stateParam = ParametersUtil.validateString(request.getParameter("addrState"));
+		String zipcodeParam = ParametersUtil.validateString(request.getParameter("addrZipcode"));
+
+		//  address line2 is optional
+		boolean validParams = line1Param != null && cityParam != null && stateParam != null && zipcodeParam != null;
+
+		validParams &= ParametersUtil.validateLengths(new String[] {line1Param, cityParam, zipcodeParam}, new int[] {
+				DBLabels.ADDRS_LINE1_LEN_MAX, DBLabels.ADDRS_CITY_LEN_MAX, DBLabels.ADDRS_ZIPCODE_LEN_MAX });
+		
+		if (validParams && line2Param != null)
+			validParams = ParametersUtil.validateLength(line2Param, DBLabels.ADDRS_LINE2_LEN_MAX);
+		
+		if (!validParams)
+			return false;
+		
+		State state = State.valueOf(stateParam.toUpperCase());
+		validParams = state != null;			
+
+		if (validParams) {
+			AddressBean newAddr = new AddressBean();
+			newAddr.setLine1(line1Param);
+			newAddr.setLine2(line2Param != null? line2Param : Values.EMPTY_STRING);		
+			newAddr.setCity(cityParam);
+			newAddr.setState(state);
+			newAddr.setZipcode(zipcodeParam);
+			
+			order.setDeliveryAddress(newAddr);			
+		}
+		
+		return validParams;
+	}
+	
+	private boolean processOrderItemsParameters(HttpServletRequest request, OrderBean order) {
 		List<OrderItemBean> orderItems = new ArrayList<OrderItemBean>();
 		
 		boolean validParams = false;
@@ -101,25 +183,24 @@ public class Create extends BaseAction {
 			String quantityParam = ParametersUtil.validateString(request.getParameter("mItemQty-" + id));
 			Integer quantity = ParametersUtil.parseInt(quantityParam);
 			
-			validParams = (quantity != null && quantity > 0 && quantity <= DBLabels.ORDER_ITEM_QUANTITY_MAX);
+			validParams = (quantity != null && quantity >= 0 && quantity <= DBLabels.ORDER_ITEM_QUANTITY_MAX);
 			if (!validParams)
 				break;
 			
-			total += (mItem.getPrice() * quantity);
-			OrderItemBean newOrderItem = new OrderItemBean();
-			newOrderItem.setMenuItem(mItem);
-			newOrderItem.setQuantity(quantity);
-			orderItems.add(newOrderItem);
+			if (quantity > 0) {
+				total += (mItem.getPrice() * quantity);
+				OrderItemBean newOrderItem = new OrderItemBean();
+				newOrderItem.setMenuItem(mItem);
+				newOrderItem.setQuantity(quantity);
+				orderItems.add(newOrderItem);				
+			}
 		}
 		
 		validParams &= orderItems.size() > 0;
 		validParams &= Double.compare(total, DBLabels.ORDER_TOTAL_MAX) < 1;
 		
 		if (validParams) {
-			order.setStatus(OrderStatus.SUBMITTED);
-			order.setType(OrderType.PICKUP);
 			order.setTotal(total);
-			order.setConfirmation(ConfirmationUtil.getConfirmation());
 			order.setItems(orderItems);
 		}
 

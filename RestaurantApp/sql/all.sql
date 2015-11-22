@@ -53,10 +53,10 @@ CREATE TABLE order_items (
 	order_id            BIGINT UNSIGNED NOT NULL,
 	menu_item_id		BIGINT UNSIGNED NOT NULL,
 	
-	quantity			TINYINT unsigned NOT NULL,
+	quantity			SMALLINT unsigned NOT NULL,
 	
 	PRIMARY KEY (order_id, menu_item_id),
-	FOREIGN KEY (order_id) REFERENCES orders (order_id),
+	FOREIGN KEY (order_id) REFERENCES orders (order_id) on delete cascade,
 	FOREIGN KEY (menu_item_id) REFERENCES menu_items (menu_item_id)
 );
 
@@ -126,17 +126,17 @@ CREATE TABLE accounts (
 	VALUES ('employee2@email.com', 'employee2First', 'employee2Last', '1234567890', 4);
 
 /*order 1*/
-	INSERT INTO orders (order_status, order_type, order_total, order_confirmation, address_id) 
-	VALUES ('SUBMITTED', 'PICKUP', 8.49, 'conf#100', NULL);
+	INSERT INTO orders (order_status, order_type, order_timestamp, order_total, order_confirmation, address_id) 
+	VALUES ('SUBMITTED', 'PICKUP', current_timestamp(), 8.49, 'conf#100', NULL);
 	INSERT INTO order_items (order_id, menu_item_id, quantity) VALUES (1, 1, 1);
 	INSERT INTO order_items (order_id, menu_item_id, quantity) VALUES (1, 2, 1);
 /*order 2*/
-	INSERT INTO orders (order_status, order_type, order_total, order_confirmation, address_id) 
-	VALUES ('PREPARED', 'DELIVERY', 10.99, 'conf#200', 5);
+	INSERT INTO orders (order_status, order_type, order_timestamp, order_total, order_confirmation, address_id) 
+	VALUES ('SUBMITTED', 'DELIVERY', current_timestamp(), 10.99, 'conf#200', 5);
 	INSERT INTO order_items (order_id, menu_item_id, quantity) VALUES (2, 5, 1);
 /*order 3*/
-	INSERT INTO orders (order_status, order_type, order_total, order_confirmation, address_id) 
-	VALUES ('CANCELED', 'PICKUP', 4.00, 'conf#300', NULL);
+	INSERT INTO orders (order_status, order_type, order_timestamp, order_total, order_confirmation, address_id) 
+	VALUES ('SUBMITTED', 'PICKUP', current_timestamp(), 4.00, 'conf#300', NULL);
 	INSERT INTO order_items (order_id, menu_item_id, quantity) VALUES (3, 6, 2);
 
 

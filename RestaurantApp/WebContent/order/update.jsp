@@ -38,6 +38,11 @@
 		String addrLine2 = address == null? Values.EMPTY_STRING : address.getLine2();
 		String addrCity = address == null? Values.EMPTY_STRING : address.getCity();
 		String addrZipcode = address == null? Values.EMPTY_STRING : address.getZipcode();
+		
+		int line1LenMax = DBLabels.ADDRS_LINE1_LEN_MAX;
+		int line2LenMax = DBLabels.ADDRS_LINE2_LEN_MAX;
+		int cityLenMax = DBLabels.ADDRS_CITY_LEN_MAX;
+		int zipcodeLenMax = DBLabels.ADDRS_ZIPCODE_LEN_MAX;
 
  		if (msg != null) {
 %>			<h3><%=msg%></h3>
@@ -48,7 +53,7 @@
 			<thead> <tr> <th> Order Data</th> <th> <input type="hidden" name="orderId" value="<%=orderId%>"> </th> </tr> </thead>			
 			<tbody>
 			<tr> <td> Status </td>
-				 <td> <select name="status" form="updateForm">
+				 <td> <select name="status" form="updateForm" required>
 <% 				 for(OrderStatus s: OrderStatus.values()) {
 %>					 	<option value="<%=s.toString()%>" <%if (s == order.getStatus()) { %> selected="selected" <%};%>> <%=s.toString().toLowerCase()%></option>
 <%				 }
@@ -56,7 +61,7 @@
 			</tr>
 			
 			<tr> <td> Type </td>
-				 <td> <select name="type" form="updateForm">
+				 <td> <select name="type" form="updateForm" required>
 <% 					for(OrderType t: OrderType.values()) {
 %>					 	<option value="<%=t.toString()%>" <% if (t == order.getType()) { %> selected="selected" <%}%>> <%=t.toString().toLowerCase()%></option>
 <%					}
@@ -68,10 +73,10 @@
 			<tr> <td> Confirmation	</td> <td>  <%=confirmation%>	</td> </tr>
 			<tr> <td> Date/Time </td> <td> <%=datetime%> </td> </tr>
 			
-			<tr> <td> Delivery Address Information : </td> <td> <input type="hidden" name="addrId" value="<%=addrId%>"></td></tr>
-			<tr> <td> Address 1	</td> <td> <input type="text" name="addrLine1" value="<%=addrLine1%>"></td> </tr>
-			<tr> <td> Address 2	</td> <td> <input type="text" name="addrLine2" value="<%=addrLine2%>">	</td> </tr>
-			<tr> <td> City	</td> <td>	<input type="text" name="addrCity" value="<%=addrCity%>"> </td> </tr>
+			<tr> <td> Delivery Address Information </td> <td> <input type="hidden" name="addrId" value="<%=addrId%>"></td></tr>
+			<tr> <td> Address 1	</td> <td> <input type="text" name="addrLine1" value="<%=addrLine1%>" manxlength="<%=line1LenMax%>"></td> </tr>
+			<tr> <td> Address 2	</td> <td> <input type="text" name="addrLine2" value="<%=addrLine2%>" manxlength="<%=line2LenMax%>"></td> </tr>
+			<tr> <td> City	</td> <td>	<input type="text" name="addrCity" value="<%=addrCity%>" manxlength="<%=cityLenMax%>"> </td> </tr>
 			<tr> <td> State	</td> 
 				 <td> <select name="addrState" form="updateForm">
 <% 					for(State st: State.values()) {
@@ -79,7 +84,7 @@
 <%					}
 %>				 </select></td> 
 			</tr>
-			<tr> <td> Zipcdoe </td> <td> <input type="text" name="addrZipcode" value="<%=addrZipcode%>"> </td></tr>
+			<tr> <td> Zipcdoe </td> <td> <input type="text" name="addrZipcode" value="<%=addrZipcode%>" manxlength="<%=zipcodeLenMax%>"> </td></tr>
 			</tbody>
 		</table>
 
@@ -91,7 +96,7 @@
 				String mItemName = oItem.getMenuItem().getName();
 				String quantity = Integer.toString(oItem.getQuantity());
 %>				
-				<tr> <td> <%=mItemName%> </td> <td> <input type="number" min="0" max="1000" name="mItemQty-<%=id%>" value="<%=quantity%>" required> </td> </tr>
+				<tr> <td> <%=mItemName%> </td> <td> <input type="number" min="0" max="1000" step="1" name="mItemQty-<%=id%>" value="<%=quantity%>" required> </td> </tr>
 <%			}
 %>			</tbody>
 			</table>

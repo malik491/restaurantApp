@@ -123,44 +123,40 @@ public class Update extends BaseAction {
 		String statusParam = ParametersUtil.validateString(request.getParameter("status"));
 		String typeParam = ParametersUtil.validateString(request.getParameter("type"));
 
-		// at least status or type param is included in the request
-		boolean hasStatus = statusParam != null;
-		boolean hasType = typeParam != null;
-		
-		boolean hasValidParams = (hasStatus && hasType);
+		boolean validParams = (statusParam != null && typeParam != null);
 		
 		// process order status
-		if (hasValidParams) {
+		if (validParams) {
 			OrderStatus status = OrderStatus.valueOf(statusParam.toUpperCase());
-			hasValidParams = status != null;
-			if (hasValidParams)
+			validParams = status != null;
+			if (validParams)
 				order.setStatus(status);
 		}
 
 		// process order type
-		if (hasValidParams) {
+		if (validParams) {
 			OrderType type = OrderType.valueOf(typeParam.toUpperCase());
-			hasValidParams = type != null;
-			if (hasValidParams) {
+			validParams = type != null;
+			if (validParams) {
 				if (type == OrderType.PICKUP) {
 					// process pickup
 					order.setType(type);
 					order.setDeliveryAddress(null);
 				} else {
 					// process delivery address
-					hasValidParams = processAddressParameters(request, order);
-					if (hasValidParams)
+					validParams = processAddressParameters(request, order);
+					if (validParams)
 						order.setType(OrderType.DELIVERY);
 				}
 			}
 		}
 		
 		// process order items
-		if (hasValidParams) {
-			hasValidParams = processOrderItemsParameters(request, order);
+		if (validParams) {
+			validParams = processOrderItemsParameters(request, order);
 		}
 		
-		return hasValidParams;
+		return validParams;
 	}
 
 	private boolean processAddressParameters(HttpServletRequest request, OrderBean order) {

@@ -74,16 +74,16 @@
 %>					</select></td>
 				</tr>
 				
-				<tr> </tr>
-				<tr> <td> User </td> <td> </td> </tr>
+				
+				<tr> <td> User Information </td> <td> </td> </tr>
 				<tr> <td> Email </td> <td> <%= email %> </td></tr>
 				<tr> <td> First Name </td> <td> <input type="text" name="firstName" value="<%= firstName %>" maxlength="<%= fNameLenMax %>" required> </td></tr>
 				<tr> <td> Last Name </td> <td> <input type="text" name="lastName" value="<%= lastName %>" maxlength="<%= lNameLenMax %>" required> </td></tr>
-				<tr> <td> Phone </td> <td> <input type="text" name="phone" value="<%= phone %>" maxlength="<%= phoneLenMax %>" required> </td></tr>
+				<tr> <td> Phone (optional) </td> <td> <input type="text" name="phone" value="<%= phone %>" maxlength="<%= phoneLenMax %>"> </td></tr>
 
 				<tr> <td> Address </td> <td> </td> </tr>
 				<tr> <td> Address 1	</td> <td> <input type="text" name="addrLine1" value="<%= addrLine1 %>" maxlength="<%= line1LenMax %>" required> </td> </tr>
-				<tr> <td> Address 2	</td> <td> <input type="text" name="addrLine2" value="<%= addrLine2 %>" maxlength="<%= line2LenMax %>" required> </td> </tr>
+				<tr> <td> Address 2	(optional) </td> <td> <input type="text" name="addrLine2" value="<%= addrLine2 %>" maxlength="<%= line2LenMax %>"> </td> </tr>
 				<tr> <td> City	</td> <td> <input type="text" name="addrCity" value="<%= city %>" maxlength="<%= cityLenMax %>" required> </td> </tr>
 				<tr> <td> State	</td> 
 					 <td> <select name="addrState" form="updateForm">

@@ -35,23 +35,22 @@
 				<tr> <td> Username </td> <td> <input type="text" name="username" value="" maxlength="<%= usernameLenMax %>" required> </td> </tr>
 				<tr> <td> Password </td> <td> <input type="text" name="password" value="" maxlength="<%= passwordLenMax %>" required> </td></tr>
 				<tr> <td> Role </td> 
-					<td><select name="role" form="addForm">
+					<td><select name="role" form="addForm" required>
 <%						for (AccountRole r: AccountRole.values()) {%>
 							<option value="<%=r.toString()%>"> <%=r.toString()%></option>
 <%						}
 %>					</select></td>
 				</tr>
 				
-				<tr> </tr>
-				<tr> <td> User </td> <td> </td> </tr>
+				<tr> <td> User Information </td> <td> </td> </tr>
 				<tr> <td> Email </td> <td> <input type="email" name="email" value="" maxlength="<%= emailLenMax %>" required> </td></tr>
 				<tr> <td> First Name </td> <td> <input type="text" name="firstName" value="" maxlength="<%= fNameLenMax %>" required> </td></tr>
 				<tr> <td> Last Name </td> <td> <input type="text" name="lastName" value="" maxlength="<%= lNameLenMax %>" required> </td></tr>
-				<tr> <td> Phone </td> <td> <input type="text" name="phone" value="" maxlength="<%= phoneLenMax %>" required> </td></tr>
+				<tr> <td> Phone (optional) </td> <td> <input type="text" name="phone" value="" maxlength="<%= phoneLenMax %>"> </td></tr>
 
-				<tr> <td> Address </td> <td> </td> </tr>
+				<tr> <td> Address Information </td> <td> </td> </tr>
 				<tr> <td> Address 1	</td> <td> <input type="text" name="addrLine1" value="" maxlength="<%= line1LenMax %>" required> </td> </tr>
-				<tr> <td> Address 2	</td> <td> <input type="text" name="addrLine2" value="" maxlength="<%= line2LenMax %>" required> </td> </tr>
+				<tr> <td> Address 2 (optional)	</td> <td> <input type="text" name="addrLine2" value="" maxlength="<%= line2LenMax %>"> </td> </tr>
 				<tr> <td> City	</td> <td> <input type="text" name="addrCity" value="" maxlength="<%= cityLenMax %>" required> </td> </tr>
 				<tr> <td> State	</td> 
 					 <td> <select name="addrState" form="addForm" required>

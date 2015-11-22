@@ -162,6 +162,8 @@ public class OrderDAO {
 				added = (address != null);
 				if (added)
 					order.setDeliveryAddress(address);
+			} else {
+				added = true;
 			}
 			
 			if (added) {

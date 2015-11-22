@@ -104,8 +104,8 @@ public class Create extends BaseAction {
 
 	private boolean processUserParameters(HttpServletRequest request, AccountBean account) {
 		String emailParam = ParametersUtil.validateString(request.getParameter("email"));
-		String firstNameParam = ParametersUtil.validateString(request.getParameter("firstname"));
-		String lastnameParam = ParametersUtil.validateString(request.getParameter("lastname"));
+		String firstNameParam = ParametersUtil.validateString(request.getParameter("firstName"));
+		String lastnameParam = ParametersUtil.validateString(request.getParameter("lastName"));
 		String phoneParam = ParametersUtil.validateString(request.getParameter("phone"));
 		
 		// phone is optional
