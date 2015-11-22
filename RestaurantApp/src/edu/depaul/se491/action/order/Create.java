@@ -218,7 +218,7 @@ public class Create extends BaseAction {
 		// use Google JSON parser to parse a list of JSON-formated order item objects
 		OrderItemBean[] orderItems = null;
 		try {
-			orderItems = new Gson().fromJson(orderItemsListParam, OrderItemBean.class);
+			orderItems = new Gson().fromJson(orderItemsListParam, OrderItemBean[].class);
 		} catch (JsonSyntaxException e) {
 			ExceptionUtil.printException(e, "order/Create.processAjaxParameters(). Gson parsing");
 		}

@@ -29,12 +29,12 @@ public class Register extends BaseAction {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		List<MenuItemBean> menuItems = null;
-		String jsonMenuItems = null;
+		String jsonMenuItemList = null;
 		String jspMsg = null;
 		
 		try {
 			menuItems = menuItemDAO.getAll();
-			jsonMenuItems = new Gson().toJson(menuItems);
+			jsonMenuItemList = new Gson().toJson(menuItems);
 			
 		} catch (Exception e) {
 			ExceptionUtil.printException(e, "store/Register");
@@ -43,7 +43,7 @@ public class Register extends BaseAction {
 		
 		if (menuItems != null) {
 			request.setAttribute("menuItems", menuItems);
-			request.setAttribute("jsonMenuItems", jsonMenuItems);
+			request.setAttribute("jsonMenuItemList", jsonMenuItemList);
 		} else {
 			request.setAttribute("msg", jspMsg);
 		}

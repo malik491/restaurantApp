@@ -30,7 +30,8 @@
 		String type = order.getType().toString().toLowerCase();
 		String total = String.format("&#36;%.2f",order.getTotal()); //&#36; html for $
 		String confirmation = order.getConfirmation();
-		String datetime = order.getTimestamp().toLocalDateTime().toString();
+		String[] timestamp = order.getTimestamp().toLocalDateTime().toString().split("T");
+		String dateTime = String.format("%s &nbsp;&nbsp; %s", timestamp[0], timestamp[1]);
 		AddressBean addr = order.getDeliveryAddress();
 		String address = addr == null? "None" : String.format("%s,<br> %s.<br> %s, %s %s", 
 				addr.getLine1(), addr.getLine2(), addr.getCity(), addr.getState().toString(), addr.getZipcode());
@@ -43,7 +44,7 @@
 			<tr> <td> Type : </td> <td> <%= type %> </td></tr>
 			<tr> <td> Total : </td> <td><%= total %> </td></tr>
 			<tr> <td> Confirmation : </td> <td> <%= confirmation %> </td></tr>
-			<tr> <td> DateTime </td> <td> <%= datetime %> </td></tr>
+			<tr> <td> DateTime </td> <td> <%= dateTime %> </td></tr>
 			<tr> <td> Delivery Address </td> <td> <%= address %></td></tr>
 		</tbody> </table>
 		
