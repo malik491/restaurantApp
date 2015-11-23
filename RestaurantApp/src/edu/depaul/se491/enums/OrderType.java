@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 /**
  * Order type
- * @author usrm
+ * @author Malik
  */
 public enum OrderType  implements Serializable {
 	PICKUP, DELIVERY

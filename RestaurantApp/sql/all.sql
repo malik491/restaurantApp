@@ -1,7 +1,3 @@
-/**
- * the order for dropping table matters (because of foreign keys)
- */
-
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS menu_items;
@@ -9,6 +5,7 @@ DROP TABLE IF EXISTS menu_items;
 DROP TABLE IF EXISTS accounts;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS addresses;
+
 
 CREATE TABLE addresses (
 	address_id			BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -28,13 +25,15 @@ CREATE TABLE addresses (
 
 CREATE TABLE orders (
 	order_id       		BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-	address_id    		BIGINT UNSIGNED DEFAULT NULL,
 	
 	order_status		ENUM ('SUBMITTED', 'PREPARED', 'CANCELED') NOT NULL,
 	order_type			ENUM ('PICKUP', 'DELIVERY') NOT NULL,
-	order_date			TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	order_total			DECIMAL(5, 2) NOT NULL,
+	order_timestamp		TIMESTAMP NOT NULL,
+	order_total			DECIMAL(7, 2) NOT NULL,
 	order_confirmation  VARCHAR(50) NOT NULL,
+	
+	address_id    		BIGINT UNSIGNED DEFAULT NULL,
+	
 	
 	PRIMARY KEY (order_id),
 	FOREIGN KEY (address_id) REFERENCES addresses (address_id)
@@ -54,40 +53,35 @@ CREATE TABLE order_items (
 	order_id            BIGINT UNSIGNED NOT NULL,
 	menu_item_id		BIGINT UNSIGNED NOT NULL,
 	
-	quantity			TINYINT unsigned NOT NULL,
+	quantity			SMALLINT unsigned NOT NULL,
 	
 	PRIMARY KEY (order_id, menu_item_id),
-	FOREIGN KEY (order_id) REFERENCES orders (order_id),
+	FOREIGN KEY (order_id) REFERENCES orders (order_id) on delete cascade,
 	FOREIGN KEY (menu_item_id) REFERENCES menu_items (menu_item_id)
 );
 
 CREATE TABLE users (
-	user_id				BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-	address_id			BIGINT UNSIGNED NOT NULL,
+	user_email			VARCHAR(30) NOT NULL,	
 	
 	first_name			VARCHAR(20) NOT NULL,
 	last_name			VARCHAR(20) NOT NULL,
-	email				VARCHAR(30) DEFAULT '',
 	phone				VARCHAR(15) DEFAULT '',
+	address_id			BIGINT UNSIGNED NOT NULL,
 	
-	PRIMARY KEY (user_id),
+	PRIMARY KEY (user_email),
 	FOREIGN KEY (address_id) REFERENCES addresses (address_id)
 );
 
 CREATE TABLE accounts (
-	account_id			BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-	user_id             BIGINT UNSIGNED NOT NULL,
-	
-	account_role		enum ('ADMIN', 'MANAGER', 'EMPLOYEE', 'CUSTOMER') NOT NULL,	
-	username			VARCHAR(30)  NOT NULL,
+	username			VARCHAR(30) NOT NULL,
 	password			VARCHAR(60) NOT NULL,
+	account_role		enum ('ADMIN', 'MANAGER', 'EMPLOYEE', 'CUSTOMER') NOT NULL,		
 	
-	PRIMARY KEY (account_id),
-	FOREIGN KEY (user_id) REFERENCES users (user_id),
-	UNIQUE(username)
+	user_email			VARCHAR(30) NOT NULL,
+	
+	PRIMARY KEY (username),
+	FOREIGN KEY (user_email) REFERENCES users (user_email)
 );
-
-
 
 
 /*address 1 for admin 1*/
@@ -100,8 +94,8 @@ CREATE TABLE accounts (
 	INSERT INTO addresses (line1, line2, city, state, zipcode) VALUES ('300 W Madison Ave', 'suit B', 'Chicago', 'IL', '60606');
 /*address 5 (for delivery)*/	
 	INSERT INTO addresses (line1, line2, city, state, zipcode) VALUES ('400 S Broadway Ave', 'Apt# 1', 'Chicago', 'IL', '60613');
+    
 
-	
 /*menu item 1*/	
 	INSERT INTO menu_items (item_name, item_description, item_price) VALUES ('Soda', 'cold and refreshing soda', 1.99);	
 /*menu item 2*/	
@@ -115,35 +109,46 @@ CREATE TABLE accounts (
 /*menu item 6*/	
 	INSERT INTO menu_items (item_name, item_description, item_price) VALUES ('Apple Pie', 'something sweet', 2.00);
 
-	
+
+/* user 1: admin*/
+	INSERT INTO users (user_email, first_name, last_name, phone, address_id) 
+	VALUES ('admin1@email.com', 'adminFirst', 'adminLast', '1234567890', 1);
+/* user 2: manager*/
+	INSERT INTO users (user_email, first_name, last_name, phone, address_id) 
+	VALUES ('manager1@email.com', 'managerFirst', 'managerLast', '1234567890', 2);
+
+/* user 3: employee 1*/
+	INSERT INTO users (user_email, first_name, last_name, phone, address_id) 
+	VALUES ('employee1@email.com', 'employee1First', 'employee1Last', '1234567890', 3);
+
+/* user 4: employee 2*/
+	INSERT INTO users (user_email, first_name, last_name, phone, address_id) 
+	VALUES ('employee2@email.com', 'employee2First', 'employee2Last', '1234567890', 4);
+
 /*order 1*/
-	INSERT INTO orders (order_status, order_type, order_total, order_confirmation) VALUES ('SUBMITTED', 'PICKUP', 8.49, 'abc123');
+	INSERT INTO orders (order_status, order_type, order_timestamp, order_total, order_confirmation, address_id) 
+	VALUES ('SUBMITTED', 'PICKUP', current_timestamp(), 8.49, 'conf#100', NULL);
 	INSERT INTO order_items (order_id, menu_item_id, quantity) VALUES (1, 1, 1);
 	INSERT INTO order_items (order_id, menu_item_id, quantity) VALUES (1, 2, 1);
 /*order 2*/
-	INSERT INTO orders (address_id, order_status, order_type, order_total, order_confirmation) VALUES (5, 'PREPARED', 'DELIVERY', 10.99, 'abc456');
+	INSERT INTO orders (order_status, order_type, order_timestamp, order_total, order_confirmation, address_id) 
+	VALUES ('SUBMITTED', 'DELIVERY', current_timestamp(), 10.99, 'conf#200', 5);
 	INSERT INTO order_items (order_id, menu_item_id, quantity) VALUES (2, 5, 1);
 /*order 3*/
-	INSERT INTO orders (order_status, order_type, order_total, order_confirmation) VALUES ('CANCELED', 'PICKUP', 4.00, 'abc789');
+	INSERT INTO orders (order_status, order_type, order_timestamp, order_total, order_confirmation, address_id) 
+	VALUES ('SUBMITTED', 'PICKUP', current_timestamp(), 4.00, 'conf#300', NULL);
 	INSERT INTO order_items (order_id, menu_item_id, quantity) VALUES (3, 6, 2);
-	
-			
-/* user 1: admin*/
-	INSERT INTO users (address_id, first_name, last_name, email, phone) VALUES (1, 'admin', 'lastName', 'admin.lastName@example.com', '1234567890');
-/* user 2: manager*/
-	INSERT INTO users (address_id, first_name, last_name, email, phone) VALUES (2, 'manager', 'lastName', 'manager.lastName@example.com', '1234567890');
-/* user 3: employee 1*/
-	INSERT INTO users (address_id, first_name, last_name, email, phone) VALUES (3, 'employee1', 'lastName', 'employee1@example.com', '1234567890');
-/* user 4: employee 2*/
-	INSERT INTO users (address_id, first_name, last_name, email, phone)	VALUES (4, 'employee2', 'lastName', 'employee2@example.com', '1234567890');
 
-	
+
 /* account 1: admin 1*/
-	INSERT INTO accounts (user_id, account_role, username, password) VALUES (1, 'ADMIN', 'admin1', '1');
+	INSERT INTO accounts (username, password, account_role, user_email) 
+	VALUES ('admin1', 'admin1', 'ADMIN', 'admin1@email.com');
 /* account 2: manager 1*/
-	INSERT INTO accounts (user_id, account_role, username, password) VALUES (2, 'MANAGER', 'manager1', '1');
+	INSERT INTO accounts (username, password, account_role, user_email) 
+	VALUES ('manager1', 'manager1', 'MANAGER', 'manager1@email.com');
 /* account 3: employee 1*/
-	INSERT INTO accounts (user_id, account_role, username, password) VALUES (3, 'EMPLOYEE', 'employee1', '1');
+	INSERT INTO accounts (username, password, account_role, user_email)
+	VALUES ('employee1', 'employee1', 'EMPLOYEE', 'employee1@email.com');
 /* account 4: employee 2*/
-	INSERT INTO accounts (user_id, account_role, username, password) VALUES (4, 'EMPLOYEE', 'employee2', '1');
-
+	INSERT INTO accounts (username, password, account_role, user_email)
+	VALUES ('employee2', 'employee2', 'EMPLOYEE', 'employee2@email.com');

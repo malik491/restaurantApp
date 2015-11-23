@@ -53,12 +53,11 @@ public class AccountBeanLoader implements BeanLoader<AccountBean> {
 		UserBean user = loader.loadSingle(rs);
 		
 		AccountBean bean = new AccountBean();
-		bean.setId(rs.getLong(ACCOUNT_ID_LABEL));
-		bean.setUser(user);
 		bean.setUsername(rs.getString(USERNAME_LABEL));
 		bean.setPassword(rs.getString(PASSOWRD_LABEL));
-		AccountRole role = AccountRole.valueOf(rs.getString(ACCOUNT_ROLE_LABEL));
-		bean.setRole(role);
+		bean.setRole(AccountRole.valueOf(rs.getString(ACCOUNT_ROLE_LABEL)));
+		bean.setUser(user);
+		
 		return bean;
 	}
 
@@ -69,14 +68,23 @@ public class AccountBeanLoader implements BeanLoader<AccountBean> {
 	 * @return return the passed ps
 	 */
 	@Override
-	public PreparedStatement loadParameters(PreparedStatement ps, AccountBean bean) throws SQLException {
-		int paramIndex = 1;
-		ps.setLong(paramIndex++, bean.getUser().getId());
-		ps.setString(paramIndex++, bean.getRole().toString());
+	public void loadParameters(PreparedStatement ps, AccountBean bean, int paramIndex) throws SQLException {
 		ps.setString(paramIndex++, bean.getUsername());
-		ps.setString(paramIndex, bean.getPassword());
-		return ps;
+		ps.setString(paramIndex++, bean.getPassword());		
+		ps.setString(paramIndex++, bean.getRole().name());
+		ps.setString(paramIndex, bean.getUser().getEmail());
 	}
 	
 
+	/**
+	 * populate the PreparedStatment with data in the account bean
+	 * @param ps preparedStatement with update sql
+	 * @param bean account bean with data
+	 * @return return the passed ps
+	 */
+	public void loadUpdateParameters(PreparedStatement ps, AccountBean bean, int paramIndex) throws SQLException {
+		ps.setString(paramIndex++, bean.getPassword());		
+		ps.setString(paramIndex++, bean.getRole().name());
+		ps.setString(paramIndex, bean.getUser().getEmail());
+	}
 }

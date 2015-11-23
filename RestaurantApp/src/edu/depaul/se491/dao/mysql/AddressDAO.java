@@ -15,7 +15,7 @@ import edu.depaul.se491.util.DAOUtil;
 import edu.depaul.se491.util.Values;
 
 /**
- * AddressDAO to access/modify account data in the database
+ * AddressDAO to access/modify address data in the database
  * @author Malik
  *
  */
@@ -41,7 +41,7 @@ public class AddressDAO {
 		
 		try {
 			conn = factory.getConnection();
-			ps = conn.prepareStatement(SELECT_ALL_SQL);
+			ps = conn.prepareStatement(SELECT_ALL_QUERY);
 			
 			ResultSet rs = ps.executeQuery();
 			addresses = loader.loadList(rs);
@@ -51,10 +51,12 @@ public class AddressDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return addresses;
 	}
-	
+
 	/**
 	 * return address associated with the given id
 	 * Null is returned if there are no address for the given id
@@ -68,7 +70,7 @@ public class AddressDAO {
 		AddressBean address = null;
 		try {
 			conn = factory.getConnection();
-			ps = conn.prepareStatement(SELECT_BY_ID_SQL);
+			ps = conn.prepareStatement(SELECT_BY_ID_QUERY);
 			
 			ps.setLong(1, addressId);
 			ResultSet rs = ps.executeQuery();
@@ -81,103 +83,105 @@ public class AddressDAO {
 		} finally {
 			if (ps != null)
 				ps.close();
+			if (conn != null)
+				conn.close();
 		}
 		return address;
 	}
-
-	/**
-	 * add address to the database using the data in the addressBean
-	 * @param address address data (excluding the id)
-	 * @return
-	 * @throws SQLException
-	 */
-	public boolean add(AddressBean address) throws SQLException {
-		Connection conn = null;
-		PreparedStatement ps = null;
-		
-		try {
-			conn = factory.getConnection();
-			ps = conn.prepareStatement(INSERT_ADDR_SQL);
-			
-			loader.loadParameters(ps, address);
-			
-			if (ps.executeUpdate() != Values.ONE_ROW_AFFECTED)
-				throw new SQLException("AddressDAO.add(): multiple (or 0) rows affected by add(address)");
-			
-		} catch (SQLException e) {
-			throw e;
-		} finally {
-			if (ps != null)
-				ps.close();
-		}
-		return true;
-	}
-	
-	/**
-	 * update an existing address with new data in the addressBean
-	 * @param address updated address data
-	 * @return
-	 * @throws SQLException
-	 */
-	public boolean update(AddressBean address) throws SQLException {
-		Connection conn = null;
-		PreparedStatement ps = null;
-		
-		try {
-			conn = factory.getConnection();
-			ps = conn.prepareStatement(UPADTE_ADDR_SQL);
-			
-			loader.loadParameters(ps, address);
-			ps.setLong(6, address.getId());
-			
-			if (ps.executeUpdate() != Values.ONE_ROW_AFFECTED) 
-				throw new SQLException("AddressDAO.update(): multiple (or 0) rows affected by update(address)");
-			
-		} catch (SQLException e) {
-			throw e;
-		} finally {
-			if (ps != null)
-				ps.close();
-		}
-		return true;
-	}
-	
 	
 	/**
 	 * insert a new address as a part of a database transaction
-	 * Also, it will set the id in the passed object (the deliveryAddress parameter)
+	 * @param conn database connection
 	 * @param deliveryAddress address data (except the id). 
-	 * @return if the address is inserted, its id will be set and return true
+	 * @return address
 	 * @throws SQLException
 	 */
-	public boolean transactionAdd(Connection conn, AddressBean address) throws SQLException {
+	public AddressBean transactionAdd(Connection conn, AddressBean address) throws SQLException {
 		PreparedStatement ps = null;
-		
+		AddressBean resultAddr = null;
 		try {
-			ps = conn.prepareStatement(INSERT_ADDR_SQL, Statement.RETURN_GENERATED_KEYS);
+			ps = conn.prepareStatement(INSERT_ADDR_QUERY, Statement.RETURN_GENERATED_KEYS);
+			loader.loadParameters(ps, address, 1);
 			
-			loader.loadParameters(ps, address);
-			if (ps.executeUpdate() != Values.ONE_ROW_AFFECTED)
-				throw new SQLException("AddressDAO.transactionAdd(): multiple (or 0) rows affected by transactionAdd(address)");
-			
-			// set the address id
-			address.setId(DAOUtil.getAutGeneratedKey(ps));
-			
+			boolean added = Values.validInsert(ps.executeUpdate());
+			if (added) {
+				// set new address id
+				resultAddr = new AddressBean();
+				resultAddr.setId(DAOUtil.getAutGeneratedKey(ps));
+				// copy
+				resultAddr.setLine1(address.getLine1());
+				resultAddr.setLine2(address.getLine2());
+				resultAddr.setCity(address.getCity());
+				resultAddr.setState(address.getState());
+				resultAddr.setZipcode(address.getZipcode());								
+			}
 		} catch (SQLException e) {
 			throw e;
 		} finally {
 			if (ps != null)
 				ps.close();
 		}
-		return true;
+		return resultAddr;
+	}
+		
+	/**
+	 * update an existing address as a part of a database transaction
+	 * @param conn database connection
+	 * @param address updated address
+	 * @return true if the address in database is updated
+	 * @throws SQLException
+	 */
+	public boolean transactionUpdate(Connection conn, AddressBean address) throws SQLException {
+		PreparedStatement ps = null;
+		boolean updated = false;
+		try {
+			ps = conn.prepareStatement(UPADTE_ADDR_QUERY);
+			
+			int paramIndex = 1;
+			loader.loadParameters(ps, address, paramIndex);
+			ps.setLong(paramIndex + UPDATE_COULMNS_COUNT, address.getId());
+			updated = Values.validUpdate(ps.executeUpdate());			
+		} catch (SQLException e) {
+			throw e;
+		} finally {
+			if (ps != null)
+				ps.close();
+		}
+		return updated;
+	}
+	
+	/**
+	 * delete an existing address as a part of a database transaction
+	 * @param conn database connection
+	 * @param addressId 
+	 * @return true if address is deleted
+	 * @throws SQLException
+	 */
+	public boolean transactionDelete(Connection conn, long addressId) throws SQLException {
+		PreparedStatement ps = null;
+		boolean deleted = false;
+		try {
+			ps = conn.prepareStatement(DELETE_ADDR_QUERY);			
+			ps.setLong(1, addressId);
+			deleted = Values.validDelete(ps.executeUpdate());
+		} catch (SQLException e) {
+			throw e;
+		} finally {
+			if (ps != null)
+				ps.close();
+		}
+		return deleted;
 	}
 	
 	
 	
-	private static final String SELECT_ALL_SQL = "SELECT * FROM addresses";
-	private static final String SELECT_BY_ID_SQL = SELECT_ALL_SQL + " WHERE (address_id = ?)";
+	private static final String SELECT_ALL_QUERY = "SELECT * FROM addresses ORDER BY address_id";
+	private static final String SELECT_BY_ID_QUERY = "SELECT * FROM addresses WHERE (address_id = ?)";
 	
-	private static final String INSERT_ADDR_SQL = "INSERT INTO addresses (line1, line2, city, state, zipcode) VALUES (?,?,?,?,?)";
-	private static final String UPADTE_ADDR_SQL = "UPDATE addresses SET line1=?, line2=?, city=?, state=?, zipcode=? WHERE (address_id=?)";
+	private static final String INSERT_ADDR_QUERY = "INSERT INTO addresses (line1, line2, city, state, zipcode) VALUES (?,?,?,?,?)";
+	private static final String UPADTE_ADDR_QUERY = "UPDATE addresses SET line1=?, line2=?, city=?, state=?, zipcode=? WHERE (address_id=?)";
+	private static final String DELETE_ADDR_QUERY = "DELETE FROM addresses WHERE (address_id=?)";
+	
+	private static final int UPDATE_COULMNS_COUNT = 5;
 	
 }

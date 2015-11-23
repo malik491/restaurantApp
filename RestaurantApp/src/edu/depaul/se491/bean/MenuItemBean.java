@@ -18,6 +18,7 @@ public class MenuItemBean implements Serializable {
 	
 	/**
 	 * construct an empty menu item with no id
+	 * description filed defaults to empty string
 	 */
 	public MenuItemBean() {
 		this.id = Values.UNKNOWN;
