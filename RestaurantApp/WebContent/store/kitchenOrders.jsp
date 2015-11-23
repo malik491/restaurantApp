@@ -11,11 +11,6 @@
 	<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/component.css"/>
 	<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/demo.css"/>
  	<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/jquery-ui.css">
-	<script>
-		$(function() {
-    		$("#accordion").accordion();
-		});
-	</script>
 </head>
 <body>
 	<div class="component">
@@ -63,10 +58,14 @@
 	}
 %>
 	</div>
-		<script type="text/javascript" src="${pageContext.request.contextPath}/js/kitchen.js"></script>
-		<script>
-			var kitchenOrdersCount = <%= orders.size() %>;
-			var curDivId = 0;
-		</script>
+	<script>
+		$(function() {
+	   		$("#accordion").accordion();
+		});
+		var kitchenOrdersCount = <%= orders.size() %>;
+		var curDivId = 0;
+	</script>
+	<script type="text/javascript" src="${pageContext.request.contextPath}/js/kitchen.js"></script>
+		
 </body>
 </html>
