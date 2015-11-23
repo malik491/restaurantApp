@@ -39,14 +39,15 @@ function removeTopView() {
 	curDivId++;
 	
 	if (kitchenOrdersCount > 0) {
-		var nextDiv = getTopView().divElement;
-		if (nextDiv) {
-			nextDiv.setAttribute("aria-selected", "true");
-			nextDiv.setAttribute("aria-expanded", "true");
-			nextDiv.setAttribute("style", "clear:both;");			
-		} else {
-			console.log(curDivId);
-		}
+		$( "#accordion" ).accordion( "refresh" );
+//		var nextDiv = getTopView().divElement;
+//		if (nextDiv) {
+//			nextDiv.setAttribute("aria-selected", "true");
+//			nextDiv.setAttribute("aria-expanded", "true");
+//			nextDiv.setAttribute("style", "clear:both;");			
+//		} else {
+//			console.log(curDivId);
+//		}
 	}
 }
 
@@ -55,30 +56,28 @@ function processResponse(orders) {
 	if (kitchenOrdersCount < 0)
 		kitchenOrdersCount = 0;
 	
-	var newOrdesIndex = kitchenOrdersCount + 1;
+	var newOrdesIndex = kitchenOrdersCount;
+	var size = orders.length;
 	
-	if (newOrdesIndex < orders.length) {
+	if (newOrdesIndex < size) {
 		var newId = Math.max(newOrdesIndex, curDivId);
 		var container = document.getElementById("accordion");
-		var size = orders.length;
-		for (i=newOrdesIndex; i < orders.length; i++) {
+		for (i=newOrdesIndex; i < size; i++) {
 			var divElem = getNewDiv(newId, orders[i]);
 			var hElem = getNewHElem(newId, orders[i]);
 			container.appendChild(hElem);
 			container.appendChild(divElem);
 			newId++;
 		}
-		kitchenOrdersCount = orders.length - kitchenOrdersCount;
+		kitchenOrdersCount += (orders.length - newOrdesIndex);
+		$( "#accordion" ).accordion( "refresh" );
+
 	}
 }
 
 function getNewDiv(newId, order) {
 	var div = document.createElement("div");
 	div.setAttribute("id", "div-" + newId);
-	div.setAttribute("aria-selected", "true");
-	div.setAttribute("aria-expanded", "true");
-	div.setAttribute("style", "clear:both;");
-	
 	var table = getNewTable(order);
 	div.appendChild(table);
 	return div;	
@@ -140,7 +139,7 @@ function fetchOrders() {
 		   		//
 		   		processResponse(orders);
 		   	}
-		   	setTimeout(fetchOrders, 40000);
+		   	setTimeout(fetchOrders, 10000);
 		}
 	}
 		  
@@ -184,4 +183,5 @@ function changeOrderStatus(orderId) {
 	xhttp.send(params);
 }
 
+setTimeout(fetchOrders, 10000);
 
